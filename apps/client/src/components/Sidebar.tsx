@@ -51,7 +51,7 @@ const allNavItems: Array<{
   //   environmentFlag: "VITE_SHOW_CREATOR_POOL",
   //   alwaysShow: false,
   // },
-  { id: "rns", icon: AtSign, label: "RNS", environmentFlag: "VITE_SHOW_RNS", alwaysShow: false },
+  { id: "rns", icon: AtSign, label: "RNS", alwaysShow: true },
 ];
 
 export function Sidebar() {

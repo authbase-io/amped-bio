@@ -45,7 +45,7 @@ export function Layout(props: LayoutProps) {
     rewardPools: { layout: "single", width: "full" },
     createRewardPool: { layout: "single", width: "full" },
     leaderboard: { layout: "two-column", width: "wide" },
-    rns: { layout: "two-column", width: "wide" },
+    rns: { layout: "single", width: "full" },
 
     // Two column pages with standard panels (for editing/configuration)
     gallery: { layout: "two-column", width: "standard" },
