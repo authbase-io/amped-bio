@@ -1,0 +1,45 @@
+{
+  "name": "@ampedbio/rns",
+  "version": "0.1.0",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "license": "MIT",
+  "files": [
+    "dist/**"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --external react --external wagmi --external viem --external graphql-request",
+    "dev": "tsup src/index.ts --format esm,cjs --watch --dts --external react --external wagmi --external viem --external graphql-request",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix --exit-on-fatal-error",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
+    "prepare": "pnpm run build"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/lodash": "^4.17.15",
+    "@types/luxon": "^3.4.2",
+    "@types/react": "^18.3.5",
+    "tsup": "^8.0.0",
+    "typescript": "5.9.2"
+  },
+  "dependencies": {
+    "ethers": "^6.13.5",
+    "graphql": "^16.11.0",
+    "graphql-request": "^7.1.2",
+    "lodash": "^4.17.21",
+    "luxon": "^3.5.0",
+    "viem": "2.34.0",
+    "wagmi": "2.14.8"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "wagmi": "2.14.8",
+    "viem": "2.34.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
