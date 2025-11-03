@@ -6,6 +6,7 @@ import { useEditor } from "../contexts/EditorContext";
 import { useNavigate } from "react-router-dom";
 import { normalizeOnelink, formatOnelink, isEquivalentOnelink } from "@/utils/onelink";
 import { toast } from "react-hot-toast";
+import { RNSNavigationProvider } from "../contexts/RNSNavigationContext";
 
 export function Editor() {
   const { onelink = "" } = useParams();
@@ -140,8 +141,10 @@ export function Editor() {
   }
 
   return (
-    <div className="h-screen">
-      <Layout onelink={normalizedOnelink} />
-    </div>
+    <RNSNavigationProvider>
+      <div className="h-screen">
+        <Layout onelink={normalizedOnelink} />
+      </div>
+    </RNSNavigationProvider>
   );
 }

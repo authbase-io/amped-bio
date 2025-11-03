@@ -12,11 +12,14 @@ import { LeaderboardPanel } from "./panels/leaderboard/LeaderboardPanel";
 import { RNSPanel } from "./panels/rns/RNSPanel";
 import { HomePanel } from "./panels/home/HomePanel";
 import { MyWalletPanel } from "./panels/wallet/MyWalletPanel";
-import { Eye } from "lucide-react";
+import { Eye, Home, Wallet } from "lucide-react";
 import RewardPanel from "./panels/reward/RewardPanel.tsx";
 import { EditorPanelType } from "@/types/editor.ts";
 import PayPanel from "./panels/pay/PayPanel.tsx";
 import RewardsPage from "./panels/rewardpools/RewardsPanel.tsx";
+import { useRNSNavigation } from "../contexts/RNSNavigationContext";
+import { useAccount } from "wagmi";
+import { useWalletContext } from "../contexts/WalletContext";
 
 interface LayoutProps {
   onelink: string;
@@ -25,6 +28,42 @@ interface LayoutProps {
 interface PanelConfig {
   layout: "single" | "two-column";
   width: "standard" | "wide" | "full";
+}
+
+// RNS Navigation Component for the header
+function RNSHeaderNav() {
+  const { navigateToHome, navigateToMyNames } = useRNSNavigation();
+  const { address: ownerAddress } = useAccount();
+  const { connect, connecting } = useWalletContext();
+
+  return (
+    <div className="flex items-center gap-4">
+      <button
+        onClick={navigateToHome}
+        className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1"
+      >
+        <Home className="w-4 h-4" />
+        <span>RNS Home</span>
+      </button>
+      {ownerAddress ? (
+        <button
+          onClick={navigateToMyNames}
+          className="text-gray-700 hover:text-gray-900 font-medium"
+        >
+          My Names
+        </button>
+      ) : (
+        <button
+          onClick={connect}
+          disabled={connecting}
+          className="flex items-center gap-2 px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors text-sm"
+        >
+          <Wallet className="w-3 h-3" />
+          {connecting ? "Connecting..." : "Connect"}
+        </button>
+      )}
+    </div>
+  );
 }
 
 export function Layout(props: LayoutProps) {
@@ -73,8 +112,8 @@ export function Layout(props: LayoutProps) {
         <main className="flex-1 flex flex-col overflow-hidden">
           {/* Header - Now always visible regardless of panel */}
           <div className="h-16 border-b bg-white px-6 flex items-center justify-between shrink-0 shadow-sm z-[10] overflow-x-auto">
-            {/* View Button - Only show for logged in users */}
-            <div className="max-h-10 flex-shrink-0">
+            {/* Left side - View Button or RNS Navigation */}
+            <div className="flex items-center gap-4 flex-shrink-0">
               <Link
                 to={`/${onelink}`}
                 className="px-2 py-1 md:px-4 md:py-2 bg-black text-white rounded-full shadow-lg hover:bg-gray-800 transition-colors flex items-center space-x-1 md:space-x-2"
@@ -82,6 +121,9 @@ export function Layout(props: LayoutProps) {
                 <Eye className="w-3 h-3 md:w-4 md:h-4" />
                 <span className="text-xs md:text-sm font-medium">View Page</span>
               </Link>
+
+              {/* Show RNS navigation when RNS panel is active */}
+              {activePanel === "rns" && <RNSHeaderNav />}
             </div>
 
             <div className="flex items-center justify-end flex-shrink-0 ml-2">
