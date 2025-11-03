@@ -59,6 +59,11 @@ export class API implements Service {
               "http://localhost:5174",
               "http://localhost:3000"
             );
+
+            // Allow ngrok URLs in development
+            if (origin.includes("ngrok") || origin.includes("ngrok-free.app")) {
+              allowedOrigins.push(origin);
+            }
           }
 
           // console.log("CORS debug - Allowed origins:", allowedOrigins);
