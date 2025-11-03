@@ -1,38 +1,34 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useRNSNavigation } from '@/contexts/RNSNavigationContext';
 
 interface ProfileNavProps {
     name: string;
+    activeTab?: 'details' | 'ownership' | 'more';
 }
 
-export const ProfileNav = ({ name }: ProfileNavProps) => {
-    const location = useLocation();
-    const pathname = location.pathname;
-    const basePath = `/profile/${name}`;
+export const ProfileNav = ({ name, activeTab = 'details' }: ProfileNavProps) => {
+    const { navigateToProfile, navigateToProfileOwnership, navigateToProfileMore } = useRNSNavigation();
 
     const navItems = [
-        { label: 'Profile', href: `/profile/${name}` },
-        // { label: 'Records', href: `/profile/${name}/records` },
-        { label: 'Ownership', href: `/profile/${name}/ownership` },
-        // { label: 'Subnames', href: `/profile/${name}/subnames` },
-        // { label: 'Permissions', href: `/profile/${name}/permissions` },
-        { label: 'More', href: `/profile/${name}/more` },
+        { label: 'Profile', tab: 'details' as const, onClick: () => navigateToProfile(name) },
+        { label: 'Ownership', tab: 'ownership' as const, onClick: () => navigateToProfileOwnership(name) },
+        { label: 'More', tab: 'more' as const, onClick: () => navigateToProfileMore(name) },
     ];
 
     return (
         <div className="mb-2 overflow-x-auto -mx-4 sm:mx-0 sm:overflow-visible">
             <nav className="flex min-w-max px-4 sm:px-0">
                 {navItems.map((item) => {
-                    const isActive = item.href === basePath ? pathname === basePath : pathname.startsWith(item.href);
+                    const isActive = item.tab === activeTab;
 
                     return (
-                        <Link
+                        <button
                             key={item.label}
-                            to={item.href}
+                            onClick={item.onClick}
                             className={isActive ? "nav-item-active" : "nav-item-inactive"}
                         >
                             {item.label}
-                        </Link>
+                        </button>
                     );
                 })}
             </nav>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { trimmedDomainName} from "@/utils/rns";
-import { Link } from 'react-router-dom'
+import { useRNSNavigation } from '@/contexts/RNSNavigationContext';
 import VerificationBadge from './VerificationBadge';
 
 interface ProfileCardProps {
@@ -12,6 +12,8 @@ interface ProfileCardProps {
 }
 
 export const ProfileCard = ({ name, addressFormatted, expiry }: ProfileCardProps) => {
+    const { navigateToProfileOwnership } = useRNSNavigation();
+
     return (
         <main className="content-container">
                 {/* Profile Header Card */}
@@ -48,7 +50,11 @@ export const ProfileCard = ({ name, addressFormatted, expiry }: ProfileCardProps
                     <div className="section-link mb-4">
                         <h2 className="section-subtitle mb-0">Ownership</h2>
                         <span className="text-blue-500 mx-2">→</span>
-                        <Link to={`/profile/${name}/ownership`} className="btn-link text-sm">View</Link>
+                        <button
+                            onClick={() => navigateToProfileOwnership(name)}
+                            className="btn-link text-sm">
+                            View
+                        </button>
                     </div>
 
                     <div className="tag-section pb-4">

@@ -2,13 +2,13 @@ import React, {useState, useRef, useEffect} from 'react';
 import {MoreHorizontal, ExternalLink, Copy, ArrowUpRight} from 'lucide-react';
 import {useOwnerDetail} from "@/hooks/rns/useOwnerDetail";
 import {domainName, scannerURL} from "@/utils/rns";
-import { useNavigate } from 'react-router-dom'
+import { useRNSNavigation } from '@/contexts/RNSNavigationContext';
 
 const RoleDropdown = ({name}: {name: string}) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const { ownerAddress } = useOwnerDetail(name);
-    const navigate = useNavigate();
+    const { navigateToProfile, navigateToAddress } = useRNSNavigation();
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -27,7 +27,7 @@ const RoleDropdown = ({name}: {name: string}) => {
             icon: <ArrowUpRight className="w-4 h-4"/>,
             label: 'View Profile',
             onClick: () => {
-                navigate(`/profile/${name}`);
+                navigateToProfile(name);
                 setIsOpen(false);
             }
         },
@@ -43,7 +43,7 @@ const RoleDropdown = ({name}: {name: string}) => {
             icon: <ArrowUpRight className="w-4 h-4"/>,
             label: 'View address',
             onClick: () => {
-                navigate(`/address/${ownerAddress.full}`);
+                navigateToAddress(ownerAddress.full);
                 setIsOpen(false);
             }
         },
