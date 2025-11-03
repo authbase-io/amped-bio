@@ -76,25 +76,41 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
 
   const lastConnectAttemptRef = useRef(0);
   const lastInitAttemptRef = useRef(0); // Ref to track last initialization attempt
+  const connectionInProgressRef = useRef(false); // Track if connection is in progress
 
   const [lastTick, setLastTick] = useState(Date.now());
 
   useEffect(() => {
     if (error) {
       console.error("Web3Auth connection error:", error);
+      connectionInProgressRef.current = false; // Reset connection state on error
     }
   }, [error]);
 
-  // Update last tick every second
-  // This can be used to trigger re-renders or other effects based on time
+  // Update last tick every 5 seconds instead of every second to reduce re-renders
   useEffect(() => {
-    setInterval(() => {
+    const interval = setInterval(() => {
       setLastTick(Date.now());
-    }, 1000);
+    }, 5000);
+
+    return () => clearInterval(interval); // Cleanup interval on unmount
   }, []);
 
   const getTokenAndConnect = useCallback(async () => {
+    // Prevent multiple simultaneous connection attempts
+    if (connectionInProgressRef.current) {
+      console.info("Connection already in progress, skipping...");
+      return;
+    }
+
+    // Check if already connected
+    if (account.status === "connected") {
+      console.info("Wallet already connected, skipping...");
+      return;
+    }
+
     try {
+      connectionInProgressRef.current = true;
       const token = await trpcClient.auth.getWalletToken.query();
 
       // await new Promise((_, reject) =>
@@ -111,10 +127,17 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       });
 
       console.info("Wallet connected successfully");
-    } catch (error) {
-      console.error("Error fetching wallet token:", error);
+    } catch (error: any) {
+      // Check if the error is because wallet is already connected
+      if (error?.message?.includes("Already connected")) {
+        console.info("Wallet is already connected");
+      } else {
+        console.error("Error fetching wallet token or connecting:", error);
+      }
+    } finally {
+      connectionInProgressRef.current = false;
     }
-  }, [connectTo]);
+  }, [connectTo, account.status]);
 
   // useEffect to force web3auth to be ready and initialized
   useEffect(() => {
@@ -122,14 +145,16 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    if (!dataWeb3Auth) return;
-    // console.info("Checking Web3Auth initialization status...", dataWeb3Auth?.web3Auth?.status);
+    if (!dataWeb3Auth || !dataWeb3Auth.web3Auth) return;
 
+    console.info("Web3Auth Status:", dataWeb3Auth?.web3Auth?.status);
+
+    // Check if Web3Auth needs initialization
     if (
       dataWeb3Auth.web3Auth?.status &&
-      ["ready", "connected", "initialized", "connecting"].includes(
+      !["ready", "connected", "initialized", "connecting"].includes(
         dataWeb3Auth.web3Auth?.status
-      ) === false
+      )
     ) {
       const now = Date.now();
       if (now - lastInitAttemptRef.current >= INIT_THROTTLE_DURATION) {
@@ -138,13 +163,20 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
           dataWeb3Auth.web3Auth?.status
         );
         lastInitAttemptRef.current = now;
+
+        // Initialize Web3Auth with proper error handling
         dataWeb3Auth.web3Auth
-          ?.init({ signal: AbortSignal.timeout(TIMEOUT_DURATION) })
+          ?.init()
           .then(() => {
             console.info("Web3Auth initialized successfully");
           })
-          .catch(error => {
-            console.error("Error initializing Web3Auth:", error);
+          .catch((error: any) => {
+            // Handle specific initialization errors
+            if (error?.message?.includes("already initialized")) {
+              console.info("Web3Auth already initialized");
+            } else {
+              console.error("Error initializing Web3Auth:", error);
+            }
           });
       }
     }
@@ -155,7 +187,8 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       authUser &&
       dataWeb3Auth &&
       account.status !== "connected" &&
-      dataWeb3Auth.status !== "connecting"
+      dataWeb3Auth.status !== "connecting" &&
+      dataWeb3Auth.status === "connected" // Web3Auth must be initialized and ready
     ) {
       const now = Date.now();
       if (now - lastConnectAttemptRef.current >= THROTTLE_DURATION) {
@@ -169,7 +202,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
         getTokenAndConnect();
       }
     }
-  }, [authUser, dataWeb3Auth, account.status, getTokenAndConnect, lastTick]);
+  }, [authUser, dataWeb3Auth, account.status, getTokenAndConnect]); // Removed lastTick dependency
 
   useEffect(() => {
     if (!authUser && account.status === "connected") {
