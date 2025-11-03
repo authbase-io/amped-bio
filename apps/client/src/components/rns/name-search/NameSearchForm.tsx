@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom'
 import { Search, ChevronDown, Shield, Globe, Zap, Users, Check, ArrowRight } from 'lucide-react';
 import { useReverseLookup } from "@/hooks/rns/useReverseLookup";
 import { useNameAvailability } from '@/hooks/rns/useNameAvailability';
 import { normalize } from "viem/ens";
 import {trimmedDomainName, isValidRevolutionName} from "@/utils/rns";
 import { SkeletonSearchResult } from '@/components/rns/ui/SkeletonLoader';
-import { FloatingPills } from './FloatingPills';
+import { useRNSNavigation } from '@/contexts/RNSNavigationContext';
 
 
 interface FeatureCardProps {
@@ -120,7 +119,7 @@ export default function NameSearchForm() {
     const [isValidName, setIsValidName] = useState(true);
     const [openFAQ, setOpenFAQ] = useState<number | null>(null);
     const searchBoxRef = useRef<HTMLDivElement>(null);
-    const navigate = useNavigate();
+    const { navigateToAddress, navigateToRegister, navigateToProfile } = useRNSNavigation();
 
     const { name: resolvedName, isLoadingAddr: isLoadingAddr } = useReverseLookup(value as `0x${string}`);
 
@@ -170,8 +169,8 @@ export default function NameSearchForm() {
 
         if (isAddress) {
             if(resolvedName) {
-                navigate(`/address/${value}`);
-            } 
+                navigateToAddress(value);
+            }
         } else if (!isValidName) {
             console.error('Cannot submit invalid name');
             return;
@@ -182,9 +181,9 @@ export default function NameSearchForm() {
             }
 
             if (isAvailable) {
-                navigate(`/register/${cleanName}`);
+                navigateToRegister(cleanName);
             } else {
-                navigate(`/profile/${cleanName}`);
+                navigateToProfile(cleanName);
             }
         }
     };
@@ -236,19 +235,10 @@ export default function NameSearchForm() {
     ];
 
     return (
-        <div className="relative bg-gray-50">
-            {/* Subtle Background */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute inset-0 bg-gradient-to-b from-white to-gray-50/50" />
-            </div>
-
-            <main className="relative">
-                <div className="relative min-h-screen w-full flex flex-col">
-                    <div className="absolute inset-0 w-full h-full pointer-events-none z-0">
-                        <FloatingPills />
-                    </div>
-                    
-                    <div className="relative w-full max-w-4xl mx-auto px-4 md:px-6 z-10 pt-20">
+        <div className="relative h-full bg-gray-50">
+            <main className="relative h-full overflow-y-auto">
+                <div className="relative w-full flex flex-col">
+                    <div className="relative w-full max-w-4xl mx-auto px-4 md:px-6 z-10 py-12">
                         <div className="text-center relative">
                             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4 relative">
                                 <span className="block text-black">
@@ -311,9 +301,13 @@ export default function NameSearchForm() {
                                         shadow-lg 
                                         overflow-hidden border border-gray-200">
                                         <div
-                                            onClick={handleSubmit}
-                                            className="px-5 py-4 hover:bg-gray-50 
-                                                cursor-pointer flex justify-between items-center 
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                handleSubmit(e as any);
+                                            }}
+                                            className="px-5 py-4 hover:bg-gray-50
+                                                cursor-pointer flex justify-between items-center
                                                 transition-all duration-200 group"
                                         >
                                             {isAddress ? (
@@ -425,10 +419,7 @@ export default function NameSearchForm() {
                                     onClick={(e) => {
                                         e.preventDefault();
                                         if (searchBoxRef.current) {
-                                            const yOffset = -100; // Offset for mobile header
-                                            const element = searchBoxRef.current;
-                                            const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-                                            window.scrollTo({ top: y, behavior: 'smooth' });
+                                            searchBoxRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                         }
                                     }}
                                     className="px-8 py-4 bg-white text-blue-600 rounded-2xl font-bold text-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 inline-flex items-center gap-3"
