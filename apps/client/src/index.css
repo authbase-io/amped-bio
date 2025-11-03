@@ -170,3 +170,85 @@
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
+
+/* RNS Specific Styles */
+@layer components {
+  /* Card variants */
+  .card-panel {
+    @apply bg-white rounded-3xl p-6 space-y-6 border border-gray-100;
+  }
+
+  /* Domain name styles */
+  .domain-name {
+    @apply text-3xl sm:text-4xl font-bold break-words;
+  }
+
+  .domain-name-container {
+    @apply w-full overflow-hidden;
+  }
+
+  /* Button styles */
+  .btn-primary {
+    @apply bg-blue-500 text-white py-3 sm:py-4 rounded-xl text-sm sm:text-base font-medium
+    hover:bg-blue-600 transition-colors duration-200 disabled:opacity-50
+    disabled:cursor-not-allowed;
+  }
+
+  .btn-circular-minus {
+    @apply w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-blue-500 text-white flex items-center justify-center text-xl sm:text-2xl
+    hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400;
+  }
+
+  .btn-circular-plus {
+    @apply w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-blue-500 text-white flex items-center justify-center
+    text-xl sm:text-2xl hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-toggle-active {
+    @apply px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-medium bg-blue-500 text-white;
+  }
+
+  .btn-toggle-inactive {
+    @apply px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-medium bg-gray-50 text-gray-700;
+  }
+
+  /* Input styles */
+  .duration-selector {
+    @apply border-2 border-gray-100 rounded-full p-1 sm:p-2 flex items-center justify-between;
+  }
+
+  .toggle-container {
+    @apply flex rounded-lg border border-gray-200 overflow-hidden;
+  }
+
+  /* Info box */
+  .info-box {
+    @apply bg-gray-50 rounded-xl p-3 sm:p-4 space-y-1 sm:space-y-2;
+  }
+
+  /* Typography */
+  .section-title {
+    @apply text-xl sm:text-2xl font-bold mb-4 sm:mb-6;
+  }
+
+  .price-display {
+    @apply text-2xl sm:text-[32px] leading-[1.1] font-bold text-blue-500;
+  }
+
+  .price-item {
+    @apply flex justify-between text-xs sm:text-sm text-gray-500;
+  }
+
+  .price-total {
+    @apply flex justify-between text-sm sm:text-base font-semibold text-gray-900 pt-2 border-t border-gray-200;
+  }
+
+  /* Utility classes */
+  .flex-between {
+    @apply flex items-center justify-between mb-4;
+  }
+
+  .flex-center {
+    @apply flex items-center;
+  }
+}
