@@ -1,13 +1,14 @@
 import React from 'react';
-import {Link} from 'react-router-dom'
 import {useAccount, useChainId} from "wagmi";
 import { useWalletContext } from "@/contexts/WalletContext";
 import { Wallet } from "lucide-react";
+import { useRNSNavigation } from '@/contexts/RNSNavigationContext';
 
 const Header = () => {
     const {address: ownerAddress} = useAccount();
     const { connect, connecting, balance } = useWalletContext();
     const chainId = useChainId();
+    const { navigateToHome, navigateToMyNames } = useRNSNavigation();
 
     const formatAddress = (addr: string) => {
         return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -26,18 +27,19 @@ const Header = () => {
             <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10">
                 <div className="flex justify-between items-center h-20">
                     <div className="flex items-center">
-                        <Link to="/" className="flex items-center">
+                        <button onClick={navigateToHome} className="flex items-center">
                             <span className="text-xl font-bold text-blue-600">Revolution Names</span>
-                        </Link>
+                        </button>
                     </div>
 
                     {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center space-x-4">
                         {ownerAddress && (
-                            <Link to="/my-domains"
+                            <button
+                                  onClick={navigateToMyNames}
                                   className="text-gray-700 hover:text-gray-900 px-4 py-2 text-base font-medium transition-colors">
                                 My Names
-                            </Link>
+                            </button>
                         )}
                         {ownerAddress ? (
                             <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg">
@@ -66,10 +68,11 @@ const Header = () => {
                     {/* Mobile Menu Button */}
                     <div className="md:hidden flex items-center gap-2">
                         {ownerAddress && (
-                            <Link to="/my-domains"
+                            <button
+                                  onClick={navigateToMyNames}
                                   className="text-gray-700 hover:text-gray-900 px-3 py-1.5 text-sm font-medium transition-colors">
                                 My Names
-                            </Link>
+                            </button>
                         )}
                         {ownerAddress ? (
                             <div className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 rounded-lg">
