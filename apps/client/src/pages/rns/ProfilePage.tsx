@@ -1,11 +1,13 @@
-import { useParams } from 'react-router-dom';
 import { useNameAvailability } from '@/hooks/rns/useNameAvailability';
 import { ProfileCard } from '@/components/rns/profile/ProfileCard';
 import {useOwnerDetail} from "@/hooks/rns/useOwnerDetail";
 
-export default function ProfilePage() {
-    const params = useParams();
-    const name = typeof params.name === 'string' ? params.name : '';
+interface ProfilePageProps {
+    name: string;
+    activeTab?: 'details' | 'ownership' | 'more';
+}
+
+export default function ProfilePage({ name, activeTab = 'details' }: ProfilePageProps) {
     const { expiryDate, ownerAddress } = useOwnerDetail(name);
 
     const {

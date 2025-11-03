@@ -10,10 +10,12 @@ import {
     formatDuration
 } from '@/utils/rns/timeUtils';
 import usePriceFeed from '@/hooks/rns/usePriceFeed';
-import {useParams} from "react-router-dom";
 
-export default function RegisterClient() {
-    const {name} = useParams() as {name: string};
+interface RegisterClientProps {
+    name: string;
+}
+
+export default function RegisterClient({ name }: RegisterClientProps) {
     const [duration, setDuration] = useState<bigint>(BigInt(0));
     const [currencyType, setCurrencyType] = useState<'ETH' | 'USD'>('ETH');
     const { isAvailable, price, isLoading, minDuration } = useNameAvailability(name, duration);

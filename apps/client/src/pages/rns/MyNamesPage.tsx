@@ -8,12 +8,13 @@ import {
 import {useAccount} from "wagmi";
 // import {GRACE_PERIOD} from "@/config/constants";
 import useGetAllRegisteredNames from "@/hooks/rns/useGetAllRegisteredNames";
-import {Link} from "react-router-dom";
+import { useRNSNavigation } from '@/contexts/RNSNavigationContext';
 import { Name } from "@/types/rns/name";
 
 const NamesList = () => {
     const {address, isConnected} = useAccount();
     const {isFetching, names, error: subgraphError} = useGetAllRegisteredNames(address, isConnected);
+    const { navigateToRegister, navigateToProfile } = useRNSNavigation();
 
     const [sortType, setSortType] = useState<"name" | "expiry">("expiry");
     const [isOpen, setIsOpen] = useState(false);
@@ -163,8 +164,14 @@ const NamesList = () => {
                 {/* Single Name Container */}
                 {sortedNames.length ? (
                     sortedNames.map((item) => (
-                        <Link
-                            to={isExpired(item.expiryDateWithGrace) ? `/register/${item.labelName}` : `/profile/${item.labelName}`}
+                        <div
+                            onClick={() => {
+                                if (isExpired(item.expiryDateWithGrace)) {
+                                    navigateToRegister(item.labelName);
+                                } else {
+                                    navigateToProfile(item.labelName);
+                                }
+                            }}
                             key={item.name}
                             className="p-3 sm:p-4 flex items-center gap-3 sm:gap-4 hover:bg-gray-50 cursor-pointer"
                         >
@@ -179,7 +186,7 @@ const NamesList = () => {
                                 </div>
                             </div>
                             <span className="text-blue-500 flex-shrink-0"></span>
-                        </Link>
+                        </div>
                     ))
                 ) : isConnected ? (
                     <div className="p-3 sm:p-4 flex items-center gap-3 sm:gap-4 hover:bg-gray-50 cursor-pointer">

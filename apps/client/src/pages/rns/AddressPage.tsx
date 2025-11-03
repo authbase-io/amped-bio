@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
 import { Copy } from 'lucide-react';
 import { useReverseLookup } from '@/hooks/rns/useReverseLookup';
 import { useOwnerDetail } from '@/hooks/rns/useOwnerDetail';
 import { domainName, trimmedDomainName } from "@/utils/rns";
+import { useRNSNavigation } from '@/contexts/RNSNavigationContext';
 
-const AddressPage = () => {
-    const params = useParams();
-    const address = typeof params.name === 'string' && params.name.startsWith('0x') ? params.name : '';
+interface AddressPageProps {
+    address: string;
+}
 
+const AddressPage = ({ address }: AddressPageProps) => {
+    const { navigateToProfile } = useRNSNavigation();
     const { name, fullName } = useReverseLookup(address as `0x${string}`);
     const { expiryDate } = useOwnerDetail(name);
 
@@ -88,12 +90,12 @@ const AddressPage = () => {
                             </div>
                         </div>
                         {name && (
-                            <Link
-                                to={`/profile/${name}`}
+                            <button
+                                onClick={() => navigateToProfile(name)}
                                 className="bg-blue-50 text-blue-500 px-6 py-2 rounded-full hover:bg-blue-100 transition font-medium"
                             >
                                 View Profile
-                            </Link>
+                            </button>
                         )}
                     </div>
                 </div>

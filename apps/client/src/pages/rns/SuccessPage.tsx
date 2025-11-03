@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import { useNavigate } from 'react-router-dom'
+import { useRNSNavigation } from '@/contexts/RNSNavigationContext';
 import RegistrationSuccess from '@/components/rns/registration/success';
 
 interface TransactionData {
@@ -11,7 +11,7 @@ interface TransactionData {
 }
 
 export default function SuccessPage() {
-    const navigate = useNavigate();
+    const { navigateToHome, navigateToProfile } = useRNSNavigation();
     const [transactionData, setTransactionData] = useState<TransactionData | null>(null);
     // const [loading, setLoading] = useState(true);
 
@@ -19,14 +19,14 @@ export default function SuccessPage() {
         const storedData = localStorage.getItem('transactionData');
 
         if (!storedData) {
-            navigate('/');
+            navigateToHome();
             return;
         }
 
         const data = JSON.parse(storedData) as TransactionData;
         setTransactionData(data);
         // setLoading(false);
-    }, [navigate]);
+    }, [navigateToHome]);
 
 
     if (!transactionData) {
@@ -34,7 +34,7 @@ export default function SuccessPage() {
     }
 
     const handleRegisterAnother = () => {
-        navigate('/');
+        navigateToHome();
     };
 
 
@@ -46,7 +46,7 @@ export default function SuccessPage() {
             usdPrice={transactionData.usdPrice}
             txFeeEth="0.002"
             txFeeUsd="3.45"
-            onViewName={() => navigate(`/profile/${transactionData.name}`)}
+            onViewName={() => navigateToProfile(transactionData.name)}
             onRegisterAnother={handleRegisterAnother}
         />
     )
