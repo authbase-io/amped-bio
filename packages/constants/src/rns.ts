@@ -4,6 +4,17 @@
  */
 
 export const RNS_CONTRACTS = {
+  // Base Sepolia (Chain ID: 84532)
+  baseSepolia: {
+    chainId: 84532,
+    chainName: 'Base Sepolia',
+    registrarController: '0x8668a395f9052C17876bF9f1D304c2Bb577d23F4',
+    resolver: '0xdfb55ba174810F2aA9CcAd8047456b1EF3b5109a',
+    baseRegistrar: '0x722aAc5CC12be68FB05CE93997B705e7Ca9d4cfc',
+    reverseRegistrar: '0xD90d3bF34804af3AE7D33a232b8Ffd9BF1439d34',
+    subgraphUrl: 'https://api.studio.thegraph.com/query/107114/base-revo-subgraph/version/latest',
+    blockExplorerUrl: 'https://sepolia.basescan.org',
+  },
   // Libertas Testnet (Chain ID: 73863)
   libertasTestnet: {
     chainId: 73863,
@@ -55,6 +66,8 @@ export const RNS_CONFIG = {
  */
 export function getRNSContracts(chainId: number) {
   switch (chainId) {
+    case 84532:
+      return RNS_CONTRACTS.baseSepolia;
     case 73863:
       return RNS_CONTRACTS.libertasTestnet;
     case 73861:
@@ -68,5 +81,5 @@ export function getRNSContracts(chainId: number) {
  * Check if RNS is supported on a chain
  */
 export function isRNSSupported(chainId: number): boolean {
-  return chainId === 73863 || chainId === 73861;
+  return chainId === 84532 || chainId === 73863 || chainId === 73861;
 }

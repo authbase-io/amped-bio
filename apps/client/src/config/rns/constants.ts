@@ -14,6 +14,18 @@ export type NetworkConfig = {
 };
 
 export const NETWORKS: Record<string, NetworkConfig> = {
+  baseSepolia: {
+    id: 84532,
+    name: 'Base Sepolia',
+    registrarAddress: '0x8668a395f9052C17876bF9f1D304c2Bb577d23F4',
+    resolverAddress: '0xdfb55ba174810F2aA9CcAd8047456b1EF3b5109a',
+    baseAddress: '0x722aAc5CC12be68FB05CE93997B705e7Ca9d4cfc',
+    reverseRegistrarAddress: '0xD90d3bF34804af3AE7D33a232b8Ffd9BF1439d34',
+    rpcUrl: 'https://sepolia.base.org',
+    subgraphUrl: 'https://api.studio.thegraph.com/query/107114/base-revo-subgraph/version/latest',
+    blockExplorerUrl: 'https://sepolia.basescan.org',
+    blockExplorerName: 'BaseScan'
+  },
   revo: {
     id: 73863,
     name: 'Revo',
@@ -29,7 +41,7 @@ export const NETWORKS: Record<string, NetworkConfig> = {
 } as const;
 
 // Default network
-export const DEFAULT_NETWORK = 'revo';
+export const DEFAULT_NETWORK = 'baseSepolia';
 
 export const NAME_REQUIREMENTS = {
   minLength: 3,
