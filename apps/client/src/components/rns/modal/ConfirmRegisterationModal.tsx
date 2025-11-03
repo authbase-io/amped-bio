@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { X, Wallet } from 'lucide-react';
 import { Duration } from 'luxon';
-import { useNavigate } from 'react-router-dom';
 import {trimmedDomainName} from "@/utils/rns";
 import {useRegistration} from "@/hooks/rns/useRegistration";
 import CustomWalletButton from '../ui/CustomConnectButton';
 import { useAccount } from 'wagmi';
+import { useRNSNavigation } from '@/contexts/RNSNavigationContext';
 
 interface ConfirmRegistrationModalProps {
     isOpen: boolean;
@@ -26,7 +26,7 @@ const ConfirmRegistrationModal = ({
                                       ethPrice,
                                       onConfirm
                                   }: ConfirmRegistrationModalProps) => {
-    const navigate = useNavigate();
+    const { navigateToSuccess } = useRNSNavigation();
     const [isSending, setIsSending] = useState(false);
     const [progress, setProgress] = useState(0);
     const { register } = useRegistration();
@@ -49,7 +49,7 @@ const ConfirmRegistrationModal = ({
                 setProgress(prev => {
                     if (prev >= 100) {
                         clearInterval(intervalId);
-                        navigate(`/success`);
+                        navigateToSuccess();
                         return 100;
                     }
                     return prev + (100/10);
@@ -60,7 +60,7 @@ const ConfirmRegistrationModal = ({
         return () => {
             if (intervalId) clearInterval(intervalId);
         };
-    }, [isSending, navigate, name, duration, registrationPrice, ethPrice]);
+    }, [isSending, navigateToSuccess, name, duration, registrationPrice, ethPrice]);
 
     if (!isOpen) return null;
 
