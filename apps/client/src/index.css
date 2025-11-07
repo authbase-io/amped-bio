@@ -251,4 +251,95 @@
   .flex-center {
     @apply flex items-center;
   }
+
+  /* Content containers */
+  .content-container {
+    @apply w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Card styles */
+  .card-base {
+    @apply bg-white rounded-2xl shadow-sm;
+  }
+
+  .card-standard {
+    @apply bg-white rounded-2xl shadow-sm p-6;
+  }
+
+  /* Profile elements */
+  .profile-header {
+    @apply h-28 sm:h-36 bg-gradient-to-r relative;
+  }
+
+  .profile-header-indigo {
+    @apply h-28 sm:h-36 bg-gradient-to-r from-indigo-400 via-indigo-400 to-blue-400 relative;
+  }
+
+  .profile-avatar-container {
+    @apply absolute left-6 sm:left-8;
+  }
+
+  .profile-avatar-top {
+    @apply absolute left-6 sm:left-8 -top-16;
+  }
+
+  .profile-avatar {
+    @apply rounded-full ring-8 ring-white;
+  }
+
+  .profile-avatar-md {
+    @apply w-32 h-32 rounded-full ring-8 ring-white;
+  }
+
+  .profile-content {
+    @apply px-6 pb-6 relative;
+  }
+
+  .profile-content-with-avatar {
+    @apply px-6 pb-6 relative pt-16;
+  }
+
+  .profile-title {
+    @apply text-xl sm:text-3xl font-bold text-gray-900 mb-1;
+  }
+
+  .section-subtitle {
+    @apply font-bold text-gray-400 mb-4;
+  }
+
+  .address-display {
+    @apply bg-gray-50 rounded-lg p-3 sm:p-4 mb-8 inline-flex items-center w-auto;
+  }
+
+  .section-link {
+    @apply flex items-center;
+  }
+
+  .btn-link {
+    @apply text-blue-500 hover:text-blue-600 flex items-center gap-1 font-medium;
+  }
+
+  .tag-section {
+    @apply flex flex-wrap gap-3 mb-6;
+  }
+
+  .tag-box {
+    @apply bg-gray-50 rounded-xl p-3 flex items-center;
+  }
+
+  .label {
+    @apply text-gray-500 font-semibold;
+  }
+
+  .value {
+    @apply font-normal text-gray-800;
+  }
+
+  .icon-action-xs {
+    @apply text-gray-400 hover:text-gray-600 cursor-pointer;
+  }
+
+  .loading {
+    @apply animate-spin h-6 w-6 border-2 border-blue-600 border-t-transparent rounded-full;
+  }
 }

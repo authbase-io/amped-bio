@@ -150,12 +150,8 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     console.info("Web3Auth Status:", dataWeb3Auth?.web3Auth?.status);
 
     // Check if Web3Auth needs initialization
-    if (
-      dataWeb3Auth.web3Auth?.status &&
-      !["ready", "connected", "initialized", "connecting"].includes(
-        dataWeb3Auth.web3Auth?.status
-      )
-    ) {
+    // Only initialize if status is "not_ready"
+    if (dataWeb3Auth.web3Auth?.status === "not_ready") {
       const now = Date.now();
       if (now - lastInitAttemptRef.current >= INIT_THROTTLE_DURATION) {
         console.info(
@@ -169,6 +165,11 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
           ?.init()
           .then(() => {
             console.info("Web3Auth initialized successfully");
+
+            // After init, check if provider is available
+            if (dataWeb3Auth.provider) {
+              console.log("Provider available after init:", dataWeb3Auth.provider);
+            }
           })
           .catch((error: any) => {
             // Handle specific initialization errors
@@ -180,7 +181,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
           });
       }
     }
-  }, [dataWeb3Auth, lastTick]);
+  }, [dataWeb3Auth?.web3Auth?.status]); // Only depend on status
 
   useEffect(() => {
     if (
@@ -210,6 +211,25 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       web3AuthDisconnect();
     }
   }, [authUser, account.status, web3AuthDisconnect]);
+
+  // CRITICAL: Set Web3Auth provider on window for wagmi to use
+  useEffect(() => {
+    if (dataWeb3Auth?.provider) {
+      console.log("Setting Web3Auth provider on window");
+      console.log("Provider:", dataWeb3Auth.provider);
+      console.log("Is same as MetaMask?", dataWeb3Auth.provider === (window as any).ethereum);
+
+      // Set Web3Auth's embedded wallet provider on window
+      (window as any).web3authProvider = dataWeb3Auth.provider;
+
+      // Log the wallet address
+      dataWeb3Auth.provider.request({ method: "eth_accounts" })
+        .then((accounts: string[]) => {
+          console.log("Web3Auth embedded wallet address:", accounts[0]);
+        })
+        .catch((err: any) => console.error("Error getting accounts:", err));
+    }
+  }, [dataWeb3Auth?.provider]);
 
   useEffect(() => {
     const linkAddress = async () => {
