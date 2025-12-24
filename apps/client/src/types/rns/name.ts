@@ -8,7 +8,7 @@ export interface NameDates {
 
 export interface NameDetails {
   name: string;
-  ownerAddress: string;
+  ownerAddress: `0x${string}`;
   displayAddress: string;
   contractAddress: string;
   roles: string[];
