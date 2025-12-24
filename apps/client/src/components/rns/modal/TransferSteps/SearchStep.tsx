@@ -1,0 +1,188 @@
+import React from "react";
+import { X, Search, Loader2, AlertTriangle } from "lucide-react";
+import { useReverseLookup } from "@/hooks/rns/useReverseLookup";
+import { isAddress } from "viem";
+import { AddressResult } from "@/types/rns/common";
+
+interface SearchStepProps {
+  onClose: () => void;
+  recipient: string;
+  setRecipient: (value: string) => void;
+  selectedAddress: AddressResult | null;
+  setSelectedAddress: (address: AddressResult | null) => void;
+  isValidatingAddress: boolean;
+  setIsValidatingAddress: (isValidating: boolean) => void;
+  ensName?: string;
+  // nameDetails: string;
+  ownerAddress: `0x${string}`;
+  address?: `0x${string}`;
+  isConnected: boolean;
+  handleContinue: () => void;
+}
+
+const SearchStep: React.FC<SearchStepProps> = ({
+  onClose,
+  recipient,
+  setRecipient,
+  selectedAddress,
+  setSelectedAddress,
+  isValidatingAddress,
+  setIsValidatingAddress,
+  ensName,
+  // nameDetails,
+  ownerAddress,
+  address,
+  isConnected,
+  handleContinue,
+}) => {
+  // For reverse lookup when an address is entered
+  const { fullName: recipientEnsName } = useReverseLookup(recipient as `0x${string}`);
+
+  const handleSearch = async (value: string) => {
+    setRecipient(value);
+
+    if (value.trim() === "") {
+      setSelectedAddress(null);
+      return;
+    }
+
+    setIsValidatingAddress(true);
+
+    try {
+      // If it's a valid Ethereum address
+      if (isAddress(value)) {
+        setSelectedAddress({
+          address: value as `0x${string}`,
+          name: recipientEnsName,
+        });
+      }
+      // Otherwise, it might be a partial search or ENS name
+      else if (value.includes(".eth")) {
+        // This is a simplified placeholder - in reality you'd use a proper ENS resolver
+        setSelectedAddress(null);
+      } else {
+        setSelectedAddress(null);
+      }
+    } catch (error) {
+      console.error("Address validation error:", error);
+      setSelectedAddress(null);
+    } finally {
+      setIsValidatingAddress(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex justify-between items-center p-4 sm:p-6 border-b border-[#e2e3e3]">
+        <h2 className="text-xl sm:text-2xl font-semibold">Send Name</h2>
+        <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <div className="relative mb-8">
+          <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Ethereum address"
+            className="w-full pl-10 pr-4 py-2 rounded-lg border border-[#e2e3e3] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={recipient}
+            onChange={e => handleSearch(e.target.value)}
+          />
+          {isValidatingAddress && (
+            <Loader2 className="w-4 h-4 absolute right-3 top-3 text-gray-400 animate-spin" />
+          )}
+        </div>
+
+        {!selectedAddress && recipient.trim() !== "" && !isValidatingAddress && (
+          <div className="mb-4 p-3 bg-gray-50 rounded-lg text-gray-600 text-center">
+            Please enter a valid Ethereum address
+          </div>
+        )}
+
+        {!selectedAddress && recipient.trim() === "" ? (
+          <div className="flex items-center justify-center flex-col text-gray-500 gap-2 mt-8">
+            <Search className="w-8 h-8 text-gray-400 mb-2" />
+            <p className="text-center">
+              Enter an Ethereum address
+              <br />
+              to transfer this name to
+            </p>
+          </div>
+        ) : (
+          selectedAddress && (
+            <div className="flex items-center gap-3 p-3 border border-[#e2e3e3] rounded-lg mb-4">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-300 to-blue-400 hidden sm:flex" />
+              <div>
+                {selectedAddress.name && <div>{selectedAddress.name}</div>}
+                <div className="text-[11px] sm:text-sm text-gray-500">
+                  {selectedAddress.address}
+                </div>
+              </div>
+            </div>
+          )
+        )}
+
+        {/* Show warnings after search UI */}
+        {!isConnected && (
+          <div className="mt-4 p-3 bg-yellow-50 text-yellow-700 rounded-lg">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" />
+              <span className="font-medium">Wallet not connected</span>
+            </div>
+            <p className="mt-1 text-sm">Connect your wallet to transfer your domain.</p>
+          </div>
+        )}
+
+        {ensName && (
+          <div className="mt-2 p-3 bg-yellow-50 text-yellow-700 rounded-lg">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" />
+              <span className="font-medium">Name not found</span>
+            </div>
+            <p className="mt-1 text-sm">
+              The name {ensName} could not be found or is not registered.
+            </p>
+          </div>
+        )}
+
+        {ownerAddress && ownerAddress.toLowerCase() !== address?.toLowerCase() && (
+          <div className="mt-2 p-3 bg-yellow-50 text-yellow-700 rounded-lg">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" />
+              <span className="font-medium">Not the owner</span>
+            </div>
+            <p className="mt-1 text-sm">You don&#39;t have permission to transfer this name.</p>
+          </div>
+        )}
+      </div>
+
+      <div className="p-4 sm:p-6 border-t border-[#e2e3e3] bg-white mt-auto">
+        <div className="flex gap-4">
+          <button
+            onClick={onClose}
+            className="flex-1 py-2 px-4 bg-gray-50 hover:bg-gray-100 rounded-lg text-gray-600"
+          >
+            Cancel
+          </button>
+          {selectedAddress && (
+            <button
+              onClick={handleContinue}
+              disabled={!isConnected}
+              className={`flex-1 py-2 px-4 rounded-lg ${
+                isConnected
+                  ? "bg-blue-500 hover:bg-blue-600 text-white"
+                  : "bg-blue-200 text-white cursor-not-allowed"
+              }`}
+            >
+              Continue
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SearchStep;
