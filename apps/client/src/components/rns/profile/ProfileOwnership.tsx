@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { HelpCircle, Send, FastForward, RefreshCcw, Copy } from "lucide-react";
+import { HelpCircle, Send, FastForward, RefreshCcw, Copy, Info } from "lucide-react";
 import TransferNameModal from "@/components/rns/modal/TransferNameModal";
 import ExtendRegistrationModal from "@/components/rns/modal/ExtendRegistrationModal";
 import { formatDateTime, scannerURL } from "@/utils/rns";
@@ -53,7 +53,9 @@ const OwnershipDetail = ({
                 <div>
                   {/*<div className="font-medium">{details.name}</div>*/}
                   <div className="flex items-center font-semibold gap-2">
-                    <span>{displayAddress}</span>
+                    <span title={ownerAddress} className="font-bold">
+                      {displayAddress}
+                    </span>
                     <Copy
                       className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-pointer"
                       onClick={() => navigator.clipboard.writeText(ownerAddress)}
@@ -156,6 +158,10 @@ const OwnershipDetail = ({
               </button>
             )}
           </div>
+          {/* <div className="flex gap-2 bg-white font-bold rounded-xl shadow-sm border mt-4 border-[#e2e3e3] p-4 text-sm sm:text-base text-gray-600">
+            <Info />
+            Information may take sometime to update.
+          </div> */}
         </div>
       </div>
 
