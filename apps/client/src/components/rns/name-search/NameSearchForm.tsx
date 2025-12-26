@@ -155,7 +155,7 @@ export default function NameSearchForm() {
 
     try {
       if (rawInput && !isAddress) {
-        if (/^.{5,}$/.test(rawInput) && isValidRevolutionName(rawInput)) {
+        if (isValidRevolutionName(rawInput)) {
           normalize(rawInput);
           setIsValidName(true);
         } else {
