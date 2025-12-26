@@ -9,7 +9,7 @@ import {
   formatDuration,
 } from "@/utils/rns/timeUtils";
 import { useNameAvailability } from "@/hooks/rns/useNameAvailability";
-import usePriceFeed from "@/hooks/rns/usePriceFeed";
+// import usePriceFeed from "@/hooks/rns/usePriceFeed";
 import { useRNSNavigation } from "@/contexts/RNSNavigationContext";
 
 interface RegisterClientProps {
@@ -21,7 +21,8 @@ export default function RegisterPage({ name }: RegisterClientProps) {
   const [currencyType, setCurrencyType] = useState<"tREVO" | "USD">("tREVO");
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
-  const { ethPrice } = usePriceFeed();
+  // const { ethPrice } = usePriceFeed();
+  const revoPrice = "$0.00";
   const { isAvailable, price, isLoading, minDuration } = useNameAvailability(name, duration);
 
   const [durationStep, setDurationStep] = useState<bigint>(0n);
@@ -146,20 +147,12 @@ export default function RegisterPage({ name }: RegisterClientProps) {
           <div className="bg-gray-50 rounded-xl p-3 sm:p-4 space-y-1 sm:space-y-2">
             <div className="flex justify-between text-xs sm:text-sm text-gray-500">
               <span>{formatDuration(Number(duration))} registration</span>
-              <span>
-                {currencyType === "tREVO"
-                  ? `${price} tREVO`
-                  : `$${(Number(price) * Number(ethPrice)).toFixed(3)}`}
-              </span>
+              <span>{currencyType === "tREVO" ? `${price} tREVO` : revoPrice}</span>
             </div>
 
             <div className="flex justify-between text-xs sm:text-sm text-gray-500">
               <span>Est. network fee</span>
-              <span>
-                {currencyType === "tREVO"
-                  ? "0.0003 tREVO"
-                  : `$${(0.0003 * Number(ethPrice)).toFixed(3)}`}
-              </span>
+              <span>{currencyType === "tREVO" ? "0.0003 tREVO" : revoPrice}</span>
             </div>
 
             <div className="flex justify-between text-sm sm:text-base font-semibold text-gray-900 pt-2 border-t border-gray-200">
@@ -167,7 +160,7 @@ export default function RegisterPage({ name }: RegisterClientProps) {
               <span>
                 {currencyType === "tREVO"
                   ? `${(Number(price) + 0.0003).toFixed(4)} tREVO`
-                  : `$${((Number(price) + 0.0003) * Number(ethPrice)).toFixed(3)}`}
+                  : revoPrice}
               </span>
             </div>
           </div>
@@ -190,7 +183,7 @@ export default function RegisterPage({ name }: RegisterClientProps) {
         name={name}
         duration={Number(duration)}
         registrationPrice={price as string}
-        ethPrice={ethPrice}
+        ethPrice={revoPrice}
       />
     </div>
   );
