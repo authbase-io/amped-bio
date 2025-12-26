@@ -16,7 +16,7 @@ interface TransferNameModalProps {
 }
 
 const TransferNameModal: React.FC<TransferNameModalProps> = ({ onClose, ensName = "" }) => {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState<"search" | "form" | "warning" | "confirm" | "final">("search");
   const [recipient, setRecipient] = useState("");
   const [selectedAddress, setSelectedAddress] = useState<AddressResult | null>(null);
   const [isValidatingAddress, setIsValidatingAddress] = useState(false);
@@ -34,8 +34,8 @@ const TransferNameModal: React.FC<TransferNameModalProps> = ({ onClose, ensName 
    * Auto move to confirmation on success
    */
   useEffect(() => {
-    if (step === 4 && overallStatus === "success") {
-      setStep(5);
+    if (step === "confirm" && overallStatus === "success") {
+      setStep("final");
     }
   }, [overallStatus, step]);
 
@@ -48,16 +48,16 @@ const TransferNameModal: React.FC<TransferNameModalProps> = ({ onClose, ensName 
     }
 
     setNameError(null);
-    setStep(2);
+    setStep("form");
   };
 
   const handleTransfer = () => {
     if (!selectedAddress || !ensName) return;
-    setStep(3);
+    setStep("warning");
   };
 
   const handleWarningConfirm = async () => {
-    setStep(4);
+    setStep("confirm");
 
     try {
       if (!selectedAddress || !address || !nftId) return;
@@ -74,10 +74,10 @@ const TransferNameModal: React.FC<TransferNameModalProps> = ({ onClose, ensName 
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-3xl w-full max-w-lg shadow-lg flex flex-col"
+        className="bg-white rounded-3xl w-full sm:max-w-lg shadow-lg flex flex-col"
         onClick={e => e.stopPropagation()}
       >
-        {step === 1 && (
+        {step === "search" && (
           <SearchStep
             onClose={onClose}
             recipient={recipient}
@@ -94,11 +94,10 @@ const TransferNameModal: React.FC<TransferNameModalProps> = ({ onClose, ensName 
             handleContinue={handleContinue}
           />
         )}
-
-        {step === 2 && (
+        {step === "form" && (
           <FormStep
             onClose={onClose}
-            goBack={() => setStep(1)}
+            goBack={() => setStep("search")}
             ensName={ensName}
             ownerAddress={ownerAddress}
             displayAddress={displayAddress}
@@ -109,10 +108,10 @@ const TransferNameModal: React.FC<TransferNameModalProps> = ({ onClose, ensName 
             nameError={nameError}
           />
         )}
-
-        {step === 3 && <WarningModal onClose={() => setStep(2)} onConfirm={handleWarningConfirm} />}
-
-        {step === 4 && (
+        {step === "warning" && (
+          <WarningModal onClose={() => setStep("form")} onConfirm={handleWarningConfirm} />
+        )}
+        {step === "confirm" && (
           <TransactionProgressModal
             onClose={onClose}
             overallStatus={overallStatus}
@@ -121,7 +120,7 @@ const TransferNameModal: React.FC<TransferNameModalProps> = ({ onClose, ensName 
           />
         )}
 
-        {step === 5 && (
+        {step === "final" && (
           <ConfirmationStep
             onClose={onClose}
             ensName={ensName}

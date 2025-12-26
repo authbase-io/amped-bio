@@ -66,7 +66,7 @@ const TransactionProgressModal: React.FC<TransactionProgressModalProps> = ({
   const content = (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">Confirm transactions</h2>
+        <h2 className="text-2xl font-semibold">Processing transactions</h2>
         {overallStatus !== "pending" && (
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X className="w-5 h-5" />
@@ -76,7 +76,8 @@ const TransactionProgressModal: React.FC<TransactionProgressModalProps> = ({
 
       <div className="bg-blue-50 p-4 rounded-lg mb-6">
         <p className="text-blue-800">
-          You will need to confirm all four transactions in your wallet to send this name.
+          We’re processing the required on-chain steps. This may take a few moments—please don’t
+          close this window.
         </p>
       </div>
 
