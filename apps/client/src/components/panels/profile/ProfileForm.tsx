@@ -60,6 +60,9 @@ export function ProfileForm({
             <SelectItem value="none" className="cursor-pointer">
               None
             </SelectItem>
+            {profile.revoName && !revoNames?.some(n => n.name === profile.revoName) && (
+              <SelectItem value={profile.revoName}>{profile.revoName}</SelectItem>
+            )}
 
             {revoNames &&
               revoNames.length > 0 &&
