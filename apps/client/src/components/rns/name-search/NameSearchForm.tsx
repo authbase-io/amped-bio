@@ -340,9 +340,7 @@ export default function NameSearchForm() {
                             <span className="text-blue-600">
                               {value.length > 15 ? `${value.slice(0, 15)}...` : value}
                             </span>
-                            <span className="text-gray-400">
-                              {DOMAIN_SUFFIX || ".revotest.eth"}
-                            </span>
+                            <span className="text-gray-400">{DOMAIN_SUFFIX}</span>
                           </span>
                           {isAvailable ? (
                             <span className="text-sm text-emerald-500 font-medium flex items-center gap-2">

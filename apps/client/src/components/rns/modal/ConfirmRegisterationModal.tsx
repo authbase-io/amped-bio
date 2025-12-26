@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { X, Wallet } from "lucide-react";
+import { useEffect } from "react";
+import { X, Wallet, Loader2 } from "lucide-react";
 import { Duration } from "luxon";
 import { trimmedDomainName } from "@/utils/rns";
 import { useRegistration } from "@/hooks/rns/useRegistration";
 import { useAccount } from "wagmi";
 import { useRNSNavigation } from "@/contexts/RNSNavigationContext";
 import { toast } from "react-hot-toast";
+import { useNameDetails } from "@/hooks/rns/useNameDetails";
 
 interface ConfirmRegistrationModalProps {
   isOpen: boolean;
@@ -25,44 +26,46 @@ const ConfirmRegistrationModal = ({
   ethPrice,
 }: ConfirmRegistrationModalProps) => {
   const { navigateToSuccess } = useRNSNavigation();
-  const { register } = useRegistration();
+  const { register, txHash, isSubmitting, isConfirming, isConfirmed, isReceiptError } =
+    useRegistration();
+  const { refetchAvailability } = useNameDetails(name);
   const { isConnected } = useAccount();
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isTxSent, setIsTxSent] = useState(false);
-
+  /**
+   * Persist tx data + navigate ONLY after confirmation
+   */
   useEffect(() => {
-    if (!isTxSent) return;
+    if (!isConfirmed || !txHash) return;
 
-    const data = {
-      name,
-      duration,
-      registrationPrice,
-      usdPrice: (Number(registrationPrice) * Number(ethPrice)).toFixed(2),
-      timestamp: Date.now(),
-    };
+    localStorage.setItem(
+      "transactionData",
+      JSON.stringify({
+        name,
+        duration,
+        registrationPrice,
+        usdPrice: (Number(registrationPrice) * Number(ethPrice)).toFixed(2),
+        transactionHash: txHash,
+        timestamp: Date.now(),
+      })
+    );
+    refetchAvailability();
+    navigateToSuccess();
+  }, [isConfirmed, txHash, name, duration, registrationPrice, ethPrice, navigateToSuccess]);
 
-    localStorage.setItem("transactionData", JSON.stringify(data));
-  }, [isTxSent, name, duration, registrationPrice, ethPrice]);
-
-  if (!isOpen) return null;
+  /**
+   * Receipt failure (revert / dropped tx)
+   */
+  useEffect(() => {
+    if (!isReceiptError) return;
+    toast.error("Transaction failed or was reverted");
+  }, [isReceiptError]);
 
   const handleConfirm = async () => {
-    if (isSubmitting) return;
-
     try {
-      setIsSubmitting(true);
-      setIsTxSent(true);
-
       await register(name, BigInt(duration), registrationPrice);
-
-      navigateToSuccess();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       toast.error("Registration failed");
-      setIsTxSent(false);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -78,64 +81,65 @@ const ConfirmRegistrationModal = ({
     return d.shiftTo("years").toHuman();
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 bg-black/[0.03] backdrop-blur-[8px] flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-3xl w-full max-w-[448px] shadow-lg">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/[0.03] backdrop-blur-[8px]">
+      <div className="bg-white w-full max-w-[448px] rounded-3xl shadow-lg">
         <div className="p-6 space-y-8">
           {/* Header */}
           <div className="flex justify-between items-center">
             <h2 className="text-[22px] font-semibold text-gray-900">
-              {isTxSent ? "Transaction Sent" : "Confirm Details"}
+              {isConfirming ? "Transaction Pending" : "Confirm Details"}
             </h2>
-            <button onClick={onClose} className="p-1 hover:bg-gray-50 rounded-full">
-              <X className="w-4 h-4 text-gray-400" />
-            </button>
-          </div>
 
-          {isTxSent ? (
-            <>
-              <p className="text-center text-gray-600">
-                Your transaction has been submitted. You can safely close this modal.
-              </p>
-
-              <div className="space-y-2">
-                <Detail label="Name" value={trimmedDomainName(name)} />
-                <Detail label="Action" value="Register Name" />
-                <Detail label="Duration" value={formatDuration(duration)} />
-              </div>
-
+            {!isSubmitting && (
               <button
                 onClick={onClose}
-                className="w-full py-3 rounded-2xl bg-gray-100 hover:bg-gray-200"
+                aria-label="Close dialog"
+                className="p-1 rounded-full hover:bg-gray-50"
               >
-                Close
+                <X className="w-4 h-4 text-gray-400" />
               </button>
-            </>
-          ) : (
-            <>
-              <div className="flex flex-col items-center gap-4">
-                <Wallet className="w-12 h-12 text-blue-500" />
-                <p className="text-gray-600 text-center">
-                  Double check these details before confirming in your wallet.
-                </p>
-              </div>
+            )}
+          </div>
 
-              <div className="space-y-2">
-                <Detail label="Name" value={trimmedDomainName(name)} />
-                <Detail label="Action" value="Register Name" />
-                <Detail label="Duration" value={formatDuration(duration)} />
-              </div>
+          {/* Body */}
+          <div className="flex flex-col items-center gap-4">
+            {isConfirming ? (
+              <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
+            ) : (
+              <Wallet className="w-12 h-12 text-blue-500" />
+            )}
 
-              {isConnected && (
-                <button
-                  onClick={handleConfirm}
-                  disabled={isSubmitting}
-                  className="w-full py-3 rounded-2xl bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50"
-                >
-                  Confirm Transaction
-                </button>
-              )}
-            </>
+            <p className="text-gray-600 text-center">
+              {isConfirming
+                ? "Your transaction is being confirmed on-chain."
+                : "Double check these details before confirming."}
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Detail label="Name" value={trimmedDomainName(name)} />
+            <Detail label="Action" value="Register Name" />
+            <Detail label="Duration" value={formatDuration(duration)} />
+          </div>
+
+          {/* CTA */}
+          {isConnected && !isConfirming && (
+            <button
+              onClick={handleConfirm}
+              disabled={isSubmitting}
+              className="w-full py-3 rounded-2xl bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50"
+            >
+              {isSubmitting ? "Confirming…" : "Confirm Transaction"}
+            </button>
+          )}
+
+          {isConfirming && (
+            <p className="text-xs text-gray-500 text-center">
+              You can safely close this modal. The transaction will continue.
+            </p>
           )}
         </div>
       </div>
