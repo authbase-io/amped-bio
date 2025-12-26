@@ -26,7 +26,6 @@ const MyNamesPage = () => {
     if (expiresTime < currentTime) return "Expired";
 
     const getExpiryDate = new Date(expiresTime * 1000);
-    console.log(getExpiryDate.toISOString());
 
     const { days, months, years } = getDifference(getExpiryDate);
 
