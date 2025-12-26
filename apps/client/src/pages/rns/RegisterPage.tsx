@@ -23,7 +23,10 @@ export default function RegisterPage({ name }: RegisterClientProps) {
 
   // const { ethPrice } = usePriceFeed();
   const revoPrice = "$0.00";
-  const { isAvailable, price, isLoading, minDuration } = useNameAvailability(name, duration);
+  const { isAvailable, price, isLoading, isPriceLoading, minDuration } = useNameAvailability(
+    name,
+    duration
+  );
 
   const [durationStep, setDurationStep] = useState<bigint>(0n);
   const [maxDuration, setMaxDuration] = useState<bigint>(0n);
@@ -168,7 +171,7 @@ export default function RegisterPage({ name }: RegisterClientProps) {
           <div className="flex justify-center">
             <button
               onClick={handleNext}
-              disabled={isLoading || !isAvailable || !duration}
+              disabled={isLoading || isPriceLoading || !isAvailable || !duration}
               className="w-full sm:w-1/3 bg-blue-500 text-white py-3 sm:py-4 rounded-xl text-sm sm:text-base font-medium hover:bg-blue-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next

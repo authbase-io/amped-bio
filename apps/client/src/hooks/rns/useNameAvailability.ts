@@ -56,7 +56,8 @@ export function useNameAvailability(
   return {
     isAvailable,
     price: price ? formatEther(price) : null,
-    isLoading: isCheckingAvailability || isLoadingPrice,
+    isPriceLoading: isLoadingPrice,
+    isLoading: isCheckingAvailability,
     minDuration,
     errors: {
       availability: availabilityError,
