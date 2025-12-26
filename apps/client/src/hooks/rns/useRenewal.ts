@@ -1,50 +1,48 @@
-import { useWriteContract, useReadContract, useChainId } from "wagmi";
-import { calculateNewExpiryDate } from "@/utils/rns";
+import { useReadContract, useWriteContract, useChainId } from "wagmi";
 import { getChainConfig, REGISTRAR_CONTROLLER_ABI } from "@ampedbio/web3";
 
-export function useRenewal(name: string, duration: bigint, expiryDate: bigint) {
+export function useRenewal(name: string, duration: bigint) {
   const { writeContractAsync } = useWriteContract();
   const chainId = useChainId();
   const networkConfig = getChainConfig(chainId);
-  
-  const { data: rentPriceData, isLoading: isPriceLoading } = useReadContract({
-    address: networkConfig?.contracts?.REGISTRAR_CONTROLLER.address,
+
+  const registrarController = networkConfig?.contracts?.REGISTRAR_CONTROLLER.address;
+
+  const { data, isLoading } = useReadContract({
+    address: registrarController,
     abi: REGISTRAR_CONTROLLER_ABI,
     functionName: "rentPrice",
     args: [name, duration],
     query: {
-      enabled: Boolean(name && duration && networkConfig?.contracts?.REGISTRAR_CONTROLLER.address),
+      enabled: Boolean(name && duration > 0n && registrarController),
     },
   });
 
-  const totalPrice = rentPriceData ? rentPriceData.base + rentPriceData.premium : null;
+  const price = data ? data.base + data.premium : null;
 
   const renew = async () => {
-    try {
-      if (!totalPrice) throw new Error("Failed to get renewal price");
-
-      const hash = await writeContractAsync({
-        address: networkConfig?.contracts?.REGISTRAR_CONTROLLER.address!,
-        abi: REGISTRAR_CONTROLLER_ABI,
-        functionName: "renew",
-        args: [name, duration],
-        value: totalPrice,
-      });
-
-      return {
-        newExpiryDate: calculateNewExpiryDate(duration, expiryDate),
-        price: totalPrice,
-        transactionHash: hash,
-      };
-    } catch (error) {
-      console.error("Renewal error:", error);
-      throw error;
+    if (!registrarController) {
+      throw new Error("Unsupported network");
     }
+
+    if (!price) {
+      throw new Error("Renewal price not available");
+    }
+
+    const renewal = await writeContractAsync({
+      address: registrarController,
+      abi: REGISTRAR_CONTROLLER_ABI,
+      functionName: "renew",
+      args: [name, duration],
+      value: price,
+    });
+
+    return renewal;
   };
 
   return {
     renew,
-    price: totalPrice,
-    isPriceLoading,
+    price,
+    isPriceLoading: isLoading,
   };
 }
