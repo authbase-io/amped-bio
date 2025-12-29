@@ -156,7 +156,7 @@ export default function RegisterPage({ name }: RegisterClientProps) {
             <button
               onClick={handleNext}
               disabled={isLoading || !isAvailable || !duration}
-              className="w-full sm:w-1/3 btn-bg-blue-500 text-white py-3 sm:py-4 rounded-xl text-sm sm:text-base font-medium hover:bg-blue-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-1/3 bg-blue-500 text-white py-3 sm:py-4 rounded-xl text-sm sm:text-base font-medium hover:bg-blue-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
             </button>
