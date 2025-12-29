@@ -14,7 +14,6 @@ interface TransactionData {
 export default function SuccessPage() {
   const { navigateToHome, navigateToProfile } = useRNSNavigation();
   const [transactionData, setTransactionData] = useState<TransactionData | null>(null);
-  // const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const storedData = localStorage.getItem("transactionData");
@@ -24,18 +23,15 @@ export default function SuccessPage() {
       return;
     }
 
-    const data = JSON.parse(storedData) as TransactionData;
-    setTransactionData(data);
-    // setLoading(false);
-  }, [navigateToHome]);
+    try {
+      setTransactionData(JSON.parse(storedData) as TransactionData);
+    } catch (err) {
+      console.error("Invalid transaction data", err);
+      navigateToHome();
+    }
+  }, []); // ✅ EMPTY dependency array
 
-  if (!transactionData) {
-    return null;
-  }
-
-  const handleRegisterAnother = () => {
-    navigateToHome();
-  };
+  if (!transactionData) return null;
 
   return (
     <RegistrationSuccess
@@ -45,8 +41,9 @@ export default function SuccessPage() {
       usdPrice={transactionData.usdPrice}
       txFeeEth="0.002"
       txFeeUsd="3.45"
+      txHash={transactionData.transactionHash}
       onViewName={() => navigateToProfile(transactionData.name)}
-      onRegisterAnother={handleRegisterAnother}
+      onRegisterAnother={navigateToHome}
     />
   );
 }

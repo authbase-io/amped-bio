@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Confetti from "react-confetti";
 import { DateTime } from "luxon";
-import { trimmedDomainName } from "@/utils/rns";
+import { scannerURL, trimmedDomainName } from "@/utils/rns";
 import { formatDuration } from "@/utils/rns/timeUtils";
 
 interface RegistrationSuccessProps {
@@ -11,6 +11,7 @@ interface RegistrationSuccessProps {
   usdPrice: string;
   txFeeEth: string;
   txFeeUsd: string;
+  txHash: `0x${string}`;
   onViewName: () => void;
   onRegisterAnother: () => void;
 }
@@ -34,6 +35,7 @@ const RegistrationSuccess: React.FC<RegistrationSuccessProps> = ({
   usdPrice,
   txFeeEth,
   txFeeUsd,
+  txHash,
   onViewName,
   onRegisterAnother,
 }) => {
@@ -76,7 +78,11 @@ const RegistrationSuccess: React.FC<RegistrationSuccessProps> = ({
               Your &#34;Register name&#34; transaction was successful
             </p>
           </div>
-          <a href="#" className="text-blue-500 text-xs whitespace-nowrap">
+          <a
+            href={scannerURL("tx", txHash)}
+            target="_blank"
+            className="text-blue-500 text-xs whitespace-nowrap"
+          >
             View on Explorer
           </a>
         </div>

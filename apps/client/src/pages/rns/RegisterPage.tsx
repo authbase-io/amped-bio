@@ -10,6 +10,7 @@ import {
 } from "@/utils/rns/timeUtils";
 import { useNameAvailability } from "@/hooks/rns/useNameAvailability";
 import usePriceFeed from "@/hooks/rns/usePriceFeed";
+import { useRNSNavigation } from "@/contexts/RNSNavigationContext";
 
 interface RegisterClientProps {
   name: string;
@@ -25,6 +26,9 @@ export default function RegisterPage({ name }: RegisterClientProps) {
 
   const [durationStep, setDurationStep] = useState<bigint>(0n);
   const [maxDuration, setMaxDuration] = useState<bigint>(0n);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  const { navigateToProfile } = useRNSNavigation();
 
   /** Initialize duration once minDuration is known */
   useEffect(() => {
@@ -36,6 +40,13 @@ export default function RegisterPage({ name }: RegisterClientProps) {
     setDurationStep(getStepForUnit(unit));
     setMaxDuration(getMaxDurationForUnit(unit));
   }, [minDuration]);
+
+  useEffect(() => {
+    if (!isLoading && isAvailable === false) {
+      setIsRedirecting(true);
+      navigateToProfile(name);
+    }
+  }, [isLoading, isAvailable, name, navigateToProfile]);
 
   const handleDurationChange = (increment: boolean) => {
     if (!minDuration) return;
@@ -56,6 +67,15 @@ export default function RegisterPage({ name }: RegisterClientProps) {
     }
     setIsConfirmModalOpen(true);
   };
+
+  // Prevent initial content flash: block render until availability is known
+  if (isLoading || isRedirecting || isAvailable === undefined) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="animate-spin h-16 w-16 border-4 border-blue-600 border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   return (
     <div>
