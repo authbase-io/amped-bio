@@ -104,7 +104,7 @@ const OwnershipDetail = ({
       {/* Dates Section */}
       <div className="bg-white rounded-xl shadow-sm border mt-4 border-[#e2e3e3] relative">
         <div className="p-5 sm:p-6 space-y-4">
-          <div className="absolute right-5" onClick={handleRefetch}>
+          <div className="absolute right-5 cursor-pointer" onClick={handleRefetch}>
             <RefreshCcw className={`w-4 h-4 mr-2 ${isNameDetailsLoading ? "animate-spin" : ""}`} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 md:pb-2 md:border-b-2 md:border-gray-100">
