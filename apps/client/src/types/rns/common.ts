@@ -40,5 +40,4 @@ export interface ContractStep {
   abi: Abi;
   functionName: string;
   args: readonly unknown[];
-  logMessage: string;
 }

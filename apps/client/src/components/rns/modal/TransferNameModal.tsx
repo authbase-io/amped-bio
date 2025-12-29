@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
+import { useAccount } from "wagmi";
+
 import { useTransferOwnership } from "@/hooks/rns/useTransferOwnership";
 import { useNameDetails } from "@/hooks/rns/useNameDetails";
-import { useAccount } from "wagmi";
 import SearchStep from "./TransferSteps/SearchStep";
 import FormStep from "./TransferSteps/FormStep";
 import { WarningModal } from "./TransferSteps/WarningModal";
 import TransactionProgressModal from "./TransferSteps/TransactionProgressStep";
-import ConfirmationStep from "./TransferSteps/ConfirmationStep";
+import SuccessStep from "./TransferSteps/SuccessStep";
 import { AddressResult } from "@/types/rns/common";
 
 interface TransferNameModalProps {
@@ -15,24 +16,22 @@ interface TransferNameModalProps {
   expiryDate?: string;
 }
 
+type ModalStep = "search" | "form" | "warning" | "confirm" | "final";
+
 const TransferNameModal: React.FC<TransferNameModalProps> = ({ onClose, ensName = "" }) => {
-  const [step, setStep] = useState<"search" | "form" | "warning" | "confirm" | "final">("search");
+  const [step, setStep] = useState<ModalStep>("search");
   const [recipient, setRecipient] = useState("");
   const [selectedAddress, setSelectedAddress] = useState<AddressResult | null>(null);
   const [isValidatingAddress, setIsValidatingAddress] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
 
-  const { transferOwnership, isConnected, overallStatus, transactions, txStatuses } =
-    useTransferOwnership();
-
   const { address } = useAccount();
 
-  const domainName = ensName?.split(".")[0] || "";
-  const { ownerAddress, displayAddress, nftId } = useNameDetails(domainName);
+  const domain = ensName?.split(".")[0] || "";
+  const { ownerAddress, displayAddress, nftId } = useNameDetails(domain);
 
-  /**
-   * Auto move to confirmation on success
-   */
+  const { transferOwnership, isConnected, steps, overallStatus } = useTransferOwnership();
+
   useEffect(() => {
     if (step === "confirm" && overallStatus === "success") {
       setStep("final");
@@ -57,14 +56,15 @@ const TransferNameModal: React.FC<TransferNameModalProps> = ({ onClose, ensName 
   };
 
   const handleWarningConfirm = async () => {
+    if (!selectedAddress || !address || !nftId) return;
+
     setStep("confirm");
 
     try {
-      if (!selectedAddress || !address || !nftId) return;
-
-      await transferOwnership(domainName, selectedAddress.address as `0x${string}`);
+      await transferOwnership(domain, selectedAddress.address as `0x${string}`);
     } catch (error) {
       console.error("Transfer error:", error);
+      // Optional: surface toast or inline error here
     }
   };
 
@@ -84,16 +84,14 @@ const TransferNameModal: React.FC<TransferNameModalProps> = ({ onClose, ensName 
             setRecipient={setRecipient}
             selectedAddress={selectedAddress}
             setSelectedAddress={setSelectedAddress}
-            isValidatingAddress={isValidatingAddress}
-            setIsValidatingAddress={setIsValidatingAddress}
             ensName={ensName}
-            // nameDetails={nameDetails as unknown as string}
             ownerAddress={ownerAddress}
             address={address}
             isConnected={isConnected}
             handleContinue={handleContinue}
           />
         )}
+
         {step === "form" && (
           <FormStep
             onClose={onClose}
@@ -108,24 +106,26 @@ const TransferNameModal: React.FC<TransferNameModalProps> = ({ onClose, ensName 
             nameError={nameError}
           />
         )}
+
         {step === "warning" && (
           <WarningModal onClose={() => setStep("form")} onConfirm={handleWarningConfirm} />
         )}
+
         {step === "confirm" && (
           <TransactionProgressModal
             onClose={onClose}
-            overallStatus={overallStatus}
             embedded
-            txStatuses={txStatuses}
+            overallStatus={overallStatus}
+            steps={steps}
           />
         )}
 
         {step === "final" && (
-          <ConfirmationStep
+          <SuccessStep
             onClose={onClose}
             ensName={ensName}
             selectedAddress={selectedAddress}
-            transactions={transactions}
+            steps={steps}
           />
         )}
       </div>

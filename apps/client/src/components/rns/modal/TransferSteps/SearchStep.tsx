@@ -1,7 +1,8 @@
-import React from "react";
-import { X, Search, Loader2, AlertTriangle } from "lucide-react";
-import { useReverseLookup } from "@/hooks/rns/useReverseLookup";
+import React, { useMemo } from "react";
+import { X, Search, AlertTriangle } from "lucide-react";
 import { isAddress } from "viem";
+
+import { useReverseLookup } from "@/hooks/rns/useReverseLookup";
 import { AddressResult } from "@/types/rns/common";
 
 interface SearchStepProps {
@@ -10,11 +11,8 @@ interface SearchStepProps {
   setRecipient: (value: string) => void;
   selectedAddress: AddressResult | null;
   setSelectedAddress: (address: AddressResult | null) => void;
-  isValidatingAddress: boolean;
-  setIsValidatingAddress: (isValidating: boolean) => void;
   ensName?: string;
-  // nameDetails: string;
-  ownerAddress: `0x${string}`;
+  ownerAddress?: `0x${string}`;
   address?: `0x${string}`;
   isConnected: boolean;
   handleContinue: () => void;
@@ -26,53 +24,45 @@ const SearchStep: React.FC<SearchStepProps> = ({
   setRecipient,
   selectedAddress,
   setSelectedAddress,
-  isValidatingAddress,
-  setIsValidatingAddress,
   ensName,
-  // nameDetails,
   ownerAddress,
   address,
   isConnected,
   handleContinue,
 }) => {
-  // For reverse lookup when an address is entered
   const { fullName: recipientEnsName } = useReverseLookup(recipient as `0x${string}`);
 
-  const handleSearch = async (value: string) => {
+  const isOwner = ownerAddress && address && ownerAddress.toLowerCase() === address.toLowerCase();
+
+  const isSelfTransfer =
+    Boolean(selectedAddress) &&
+    Boolean(address) &&
+    selectedAddress?.address.toLowerCase() === address?.toLowerCase();
+
+  const showInvalidAddress = recipient.trim() !== "" && !selectedAddress;
+
+  const handleSearch = (value: string) => {
     setRecipient(value);
 
-    if (value.trim() === "") {
+    if (!value.trim()) {
       setSelectedAddress(null);
       return;
     }
 
-    setIsValidatingAddress(true);
-
-    try {
-      // If it's a valid Ethereum address
-      if (isAddress(value)) {
-        setSelectedAddress({
-          address: value as `0x${string}`,
-          name: recipientEnsName,
-        });
-      }
-      // Otherwise, it might be a partial search or ENS name
-      else if (value.includes(".eth")) {
-        // This is a simplified placeholder - in reality you'd use a proper ENS resolver
-        setSelectedAddress(null);
-      } else {
-        setSelectedAddress(null);
-      }
-    } catch (error) {
-      console.error("Address validation error:", error);
-      setSelectedAddress(null);
-    } finally {
-      setIsValidatingAddress(false);
+    if (isAddress(value)) {
+      setSelectedAddress({
+        address: value as `0x${string}`,
+        name: recipientEnsName,
+      });
+      return;
     }
+
+    setSelectedAddress(null);
   };
 
   return (
     <div className="flex flex-col rounded-3xl">
+      {/* Header */}
       <div className="flex justify-between items-center p-4 sm:p-6 border-b border-[#e2e3e3]">
         <h2 className="text-xl sm:text-2xl font-semibold">Send Name</h2>
         <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
@@ -80,7 +70,9 @@ const SearchStep: React.FC<SearchStepProps> = ({
         </button>
       </div>
 
+      {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+        {/* Search input */}
         <div className="relative mb-8">
           <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
           <input
@@ -90,18 +82,17 @@ const SearchStep: React.FC<SearchStepProps> = ({
             value={recipient}
             onChange={e => handleSearch(e.target.value)}
           />
-          {isValidatingAddress && (
-            <Loader2 className="w-4 h-4 absolute right-3 top-3 text-gray-400 animate-spin" />
-          )}
         </div>
 
-        {!selectedAddress && recipient.trim() !== "" && !isValidatingAddress && (
+        {/* Invalid address */}
+        {showInvalidAddress && (
           <div className="mb-4 p-3 bg-gray-50 rounded-lg text-gray-600 text-center">
             Please enter a valid Ethereum address
           </div>
         )}
 
-        {!selectedAddress && recipient.trim() === "" ? (
+        {/* Empty state */}
+        {!selectedAddress && !recipient.trim() && (
           <div className="flex items-center justify-center flex-col text-gray-500 gap-2 mt-8">
             <Search className="w-8 h-8 text-gray-400 mb-2" />
             <p className="text-center">
@@ -110,54 +101,52 @@ const SearchStep: React.FC<SearchStepProps> = ({
               to transfer this name to
             </p>
           </div>
-        ) : (
-          selectedAddress && (
-            <div className="flex items-center gap-3 py-2 px-2 sm:p-3 border border-[#e2e3e3] rounded-lg mb-4">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-300 to-blue-400" />
-              <div className="flex-1 min-w-0">
-                {selectedAddress.name && <div>{selectedAddress.name}</div>}
-                <div className="text-sm sm:text-base text-gray-500 max-w-full truncate font-semibold">
-                  {selectedAddress.address}
-                </div>
-              </div>
-            </div>
-          )
         )}
 
-        {/* Show warnings after search UI */}
-        {!isConnected && (
-          <div className="mt-4 p-3 bg-yellow-50 text-yellow-700 rounded-lg">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5" />
-              <span className="font-medium">Wallet not connected</span>
+        {/* Selected address */}
+        {selectedAddress && (
+          <div className="flex items-center gap-3 py-2 px-2 sm:p-3 border border-[#e2e3e3] rounded-lg mb-4">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-300 to-blue-400" />
+            <div className="flex-1 min-w-0">
+              {selectedAddress.name && <div>{selectedAddress.name}</div>}
+              <div className="text-sm sm:text-base text-gray-500 truncate font-semibold">
+                {selectedAddress.address}
+              </div>
             </div>
-            <p className="mt-1 text-sm">Connect your wallet to transfer your domain.</p>
           </div>
+        )}
+
+        {/* Warnings */}
+        {!isConnected && (
+          <Warning
+            title="Wallet not connected"
+            message="Connect your wallet to transfer your domain."
+          />
         )}
 
         {!ensName && (
-          <div className="mt-2 p-3 bg-yellow-50 text-yellow-700 rounded-lg">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5" />
-              <span className="font-medium">Name not found</span>
-            </div>
-            <p className="mt-1 text-sm">
-              The name {ensName} could not be found or is not registered.
-            </p>
-          </div>
+          <Warning
+            title="Name not found"
+            message={`The name ${ensName} could not be found or is not registered.`}
+          />
         )}
 
-        {ownerAddress && ownerAddress.toLowerCase() !== address?.toLowerCase() && (
-          <div className="mt-2 p-3 bg-yellow-50 text-yellow-700 rounded-lg">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5" />
-              <span className="font-medium">Not the owner</span>
-            </div>
-            <p className="mt-1 text-sm">You don&#39;t have permission to transfer this name.</p>
-          </div>
+        {!isOwner && ownerAddress && (
+          <Warning
+            title="Not the owner"
+            message="You don't have permission to transfer this name."
+          />
+        )}
+
+        {isSelfTransfer && (
+          <Warning
+            title="Invalid recipient"
+            message="You cannot transfer a name to your own address."
+          />
         )}
       </div>
 
+      {/* Footer */}
       <div className="p-4 sm:p-6 border-t border-[#e2e3e3]">
         <div className="flex gap-4">
           <button
@@ -166,12 +155,13 @@ const SearchStep: React.FC<SearchStepProps> = ({
           >
             Cancel
           </button>
+
           {selectedAddress && (
             <button
               onClick={handleContinue}
-              disabled={!isConnected}
+              disabled={!isConnected || !isOwner || isSelfTransfer}
               className={`flex-1 py-2 px-4 rounded-lg ${
-                isConnected
+                isConnected && isOwner && !isSelfTransfer
                   ? "bg-blue-500 hover:bg-blue-600 text-white"
                   : "bg-blue-200 text-white cursor-not-allowed"
               }`}
@@ -184,5 +174,19 @@ const SearchStep: React.FC<SearchStepProps> = ({
     </div>
   );
 };
+
+/* -------------------------------------------------------------------------- */
+/*                               Warning UI                                   */
+/* -------------------------------------------------------------------------- */
+
+const Warning = ({ title, message }: { title: string; message: string }) => (
+  <div className="mt-2 p-3 bg-yellow-50 text-yellow-700 rounded-lg">
+    <div className="flex items-center gap-2">
+      <AlertTriangle className="w-5 h-5" />
+      <span className="font-medium">{title}</span>
+    </div>
+    <p className="mt-1 text-sm">{message}</p>
+  </div>
+);
 
 export default SearchStep;

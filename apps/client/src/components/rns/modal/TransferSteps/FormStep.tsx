@@ -1,18 +1,19 @@
 import React from "react";
 import { X, AlertTriangle } from "lucide-react";
-import { AddressResult } from "@/types/rns/common";
-import { trimmedDomainName } from "@/utils/rns";
 import { Address } from "viem";
+
+import { AddressResult, TxStatus } from "@/types/rns/common";
+import { trimmedDomainName } from "@/utils/rns";
 
 interface FormStepProps {
   onClose: () => void;
   goBack: () => void;
   ensName?: string;
-  displayAddress: string;
-  ownerAddress: Address;
+  displayAddress?: string;
+  ownerAddress?: Address;
   selectedAddress: AddressResult | null;
   isConnected: boolean;
-  overallStatus: string;
+  overallStatus: TxStatus;
   handleTransfer: () => void;
   nameError: string | null;
 }
@@ -29,8 +30,11 @@ const FormStep: React.FC<FormStepProps> = ({
   handleTransfer,
   nameError,
 }) => {
+  const senderAddress = ownerAddress || displayAddress;
+
   return (
     <div className="flex flex-col h-full">
+      {/* Header */}
       <div className="flex justify-between items-center p-3 sm:p-5 border-b border-[#e2e3e3]">
         <button onClick={goBack} className="text-blue-500">
           <svg
@@ -56,93 +60,100 @@ const FormStep: React.FC<FormStepProps> = ({
             />
           </svg>
         </button>
+
         <button onClick={onClose} className="text-gray-500">
           <X className="w-6 h-6" />
         </button>
       </div>
 
+      {/* Content */}
       <div className="flex-1 overflow-y-auto p-3 sm:p-5">
-        <h1 className="text-lg sm:text-2xl font-bold mb-3">You&#39;ll be sending</h1>
+        <h1 className="text-lg sm:text-2xl font-bold mb-3">You&apos;ll be sending</h1>
 
-        <div className="bg-gray-50 rounded-xl p-3 mb-3 flex items-center">
+        {/* Name Card */}
+        <div className="bg-gray-50 rounded-xl p-3 mb-4 flex items-center">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden" />
+            <div className="w-10 h-10 rounded-full bg-blue-100" />
             <div>
-              <p className="font-semibold">{trimmedDomainName(ensName as string)}</p>
-              <p className="block lg:hidden text-gray-500 text-sm">{displayAddress || "0x..."}</p>
-              <p className="hidden lg:block text-gray-500 text-sm">{ownerAddress || "0x..."}</p>
+              <p className="font-semibold">{ensName ? trimmedDomainName(ensName) : "—"}</p>
+              {senderAddress && (
+                <>
+                  <p className="block lg:hidden text-gray-500 text-sm">
+                    {senderAddress.slice(0, 6)}…{senderAddress.slice(-4)}
+                  </p>
+                  <p className="hidden lg:block text-gray-500 text-sm">{senderAddress}</p>
+                </>
+              )}
             </div>
           </div>
         </div>
 
+        {/* Recipient */}
         <h2 className="text-lg sm:text-2xl font-bold mb-2">To</h2>
 
-        <div className="bg-gray-50 rounded-xl p-3 mb-3 flex items-center">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden" />
-            <div className="text-sm sm:text-base">
-              {selectedAddress?.name && <p className="font-medium">{selectedAddress.name}</p>}
-              <>
-                <p
-                  className={`block lg:hidden text-sm ${selectedAddress?.name ? "text-gray-500" : "font-medium"}`}
-                >
-                  {selectedAddress?.address
-                    ? `${selectedAddress.address.slice(0, 6)}...${selectedAddress.address.slice(-4)}`
-                    : ""}
-                </p>
-                <p
-                  className={`hidden lg:block  text-sm ${selectedAddress?.name ? "text-gray-500" : "font-medium"}`}
-                >
-                  {selectedAddress?.address}
-                </p>
-              </>
+        {selectedAddress && (
+          <div className="bg-gray-50 rounded-xl p-3 mb-4 flex items-center">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gray-200 rounded-full" />
+              <div className="text-sm sm:text-base">
+                {selectedAddress.name && <p className="font-medium">{selectedAddress.name}</p>}
+                <>
+                  <p
+                    className={`block lg:hidden text-sm ${
+                      selectedAddress.name ? "text-gray-500" : "font-medium"
+                    }`}
+                  >
+                    {selectedAddress.address.slice(0, 6)}…{selectedAddress.address.slice(-4)}
+                  </p>
+                  <p
+                    className={`hidden lg:block text-sm ${
+                      selectedAddress.name ? "text-gray-500" : "font-medium"
+                    }`}
+                  >
+                    {selectedAddress.address}
+                  </p>
+                </>
+              </div>
             </div>
           </div>
+        )}
+
+        {/* What will be sent */}
+        <h2 className="text-lg sm:text-2xl font-bold mb-2">What you&apos;ll send</h2>
+
+        <div className="bg-gray-50 rounded-xl p-3 mb-4 space-y-3">
+          <InfoItem
+            title="Address record"
+            description="Your Revoname will resolve to this address."
+          />
+          <InfoItem
+            title="Name record"
+            description="Your Revoname will no longer be displayed with your address."
+          />
+          <InfoItem
+            title="Profile editing"
+            description="Transfer editing rights to this address."
+          />
+          <InfoItem
+            title="Token ownership"
+            description="Transfer the Revoname token to this address."
+          />
         </div>
 
-        <h2 className="text-lg sm:text-2xl font-bold mb-2">What you&#39;ll send</h2>
-
-        <div className="bg-gray-50 rounded-xl p-3 mb-3">
-          <div className="space-y-2">
-            <div>
-              <p className="font-semibold text-sm">Address record</p>
-              <p className="text-gray-500 text-xs sm:text-sm">
-                Your Revoname will resolve to this address.
-              </p>
-            </div>
-            <div>
-              <p className="font-semibold text-sm">Name record</p>
-              <p className="text-gray-500 text-xs sm:text-sm">
-                Your Revoname will no longer be displayed with your address.
-              </p>
-            </div>
-            <div>
-              <p className="font-semibold text-sm">Profile editing</p>
-              <p className="text-gray-500 text-xs sm:text-sm">
-                Transfer editing rights to this address.
-              </p>
-            </div>
-            <div>
-              <p className="font-semibold text-sm">Token ownership</p>
-              <p className="text-gray-500 text-xs sm:text-sm">
-                Transfer the Revoname token to this address.
-              </p>
-            </div>
-          </div>
-        </div>
-
+        {/* Error */}
         {nameError && (
-          <div className="mb-3 p-2 bg-red-50 text-red-700 rounded-lg">
+          <div className="mb-3 p-3 bg-red-50 text-red-700 rounded-lg">
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5" />
               <span className="font-medium">Error</span>
             </div>
-            <p className="mt-1">{nameError}</p>
+            <p className="mt-1 text-sm">{nameError}</p>
           </div>
         )}
       </div>
 
-      <div className="p-3 sm:p-5 border-t border-[#e2e3e3] flex-shrink-0">
+      {/* Footer */}
+      <div className="p-3 sm:p-5 border-t border-[#e2e3e3]">
         <button
           onClick={handleTransfer}
           disabled={!isConnected || overallStatus === "pending"}
@@ -154,5 +165,12 @@ const FormStep: React.FC<FormStepProps> = ({
     </div>
   );
 };
+
+const InfoItem = ({ title, description }: { title: string; description: string }) => (
+  <div>
+    <p className="font-semibold text-sm">{title}</p>
+    <p className="text-gray-500 text-xs sm:text-sm">{description}</p>
+  </div>
+);
 
 export default FormStep;

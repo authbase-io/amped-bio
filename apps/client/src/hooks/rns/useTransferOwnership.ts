@@ -1,256 +1,169 @@
-import { ContractStep, TxKeys, TxStatus, TxStep } from "@/types/rns/common";
-import { domainName } from "@/utils/rns";
+import { useCallback, useMemo, useState } from "react";
 import {
   BASE_REGISTRAR_ABI,
   getChainConfig,
   RESOLVER_ABI,
   REVERSE_REGISTRAR_ABI,
 } from "@ampedbio/web3";
-import { useEffect, useMemo, useState } from "react";
 import { keccak256, namehash, toBytes } from "viem";
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useAccount, useWriteContract, usePublicClient } from "wagmi";
+
+import { domainName } from "@/utils/rns";
+import { ContractStep, TxStatus, TxStep } from "@/types/rns/common";
+
+export type StepState = {
+  step: TxStep;
+  status: TxStatus; // "idle" | "pending" | "success" | "error"
+  hash?: `0x${string}`;
+  error?: Error;
+};
+
+type TransferResult = {
+  success: boolean;
+  steps: Record<TxStep, StepState>;
+  error?: Error;
+};
+
+const INITIAL_STEPS: Record<TxStep, StepState> = {
+  setAddr: { step: "setAddr", status: "idle" },
+  setName: { step: "setName", status: "idle" },
+  reclaim: { step: "reclaim", status: "idle" },
+  transfer: { step: "transfer", status: "idle" },
+};
 
 export function useTransferOwnership() {
   const { address, chainId } = useAccount();
-  const networkConfig = getChainConfig(chainId ?? 0);
+  const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
 
-  // Transaction status tracking
-  const [transactions, setTransactions] = useState<{
-    setAddrTx?: `0x${string}`;
-    setNameTx?: `0x${string}`;
-    reclaimTx?: `0x${string}`;
-    transferTx?: `0x${string}`;
-  }>({});
+  const networkConfig = getChainConfig(chainId ?? 0);
 
-  // Track status for each transaction
-  const [txStatuses, setTxStatuses] = useState<Record<TxStep, TxStatus>>({
-    setAddr: "idle",
-    setName: "idle",
-    reclaim: "idle",
-    transfer: "idle",
-  });
+  const [steps, setSteps] = useState<Record<TxStep, StepState>>(INITIAL_STEPS);
 
-  // Map of step names to transaction hash keys - wrapped in useMemo
-  const stepToTxKey = useMemo<Record<TxStep, TxKeys>>(
-    () => ({
-      setAddr: "setAddrTx",
-      setName: "setNameTx",
-      reclaim: "reclaimTx",
-      transfer: "transferTx",
-    }),
-    []
+  const resetSteps = () => {
+    setSteps(INITIAL_STEPS);
+  };
+
+  const updateStep = useCallback((step: TxStep, patch: Partial<StepState>) => {
+    setSteps(prev => ({
+      ...prev,
+      [step]: { ...prev[step], ...patch },
+    }));
+  }, []);
+
+  const executeStep = useCallback(
+    async (config: ContractStep) => {
+      if (!publicClient) {
+        throw new Error("Public client not available");
+      }
+
+      updateStep(config.step, { status: "pending", error: undefined });
+
+      const hash = await writeContractAsync({
+        address: config.contractAddress,
+        abi: config.abi,
+        functionName: config.functionName,
+        args: config.args,
+      });
+
+      updateStep(config.step, { hash });
+
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash,
+      });
+
+      if (receipt.status !== "success") {
+        throw new Error(`${config.step} transaction failed`);
+      }
+
+      updateStep(config.step, { status: "success" });
+    },
+    [publicClient, updateStep, writeContractAsync]
   );
 
-  // Create individual receipt trackers for each transaction
-  const setAddrReceipt = useWaitForTransactionReceipt({
-    hash: transactions.setAddrTx,
-    pollingInterval: 1_000,
-  });
+  const transferOwnership = useCallback(
+    async (name: string, receiverAddress: `0x${string}`): Promise<TransferResult> => {
+      if (!address) throw new Error("Wallet not connected");
+      if (!networkConfig) throw new Error("Unsupported network");
 
-  const setNameReceipt = useWaitForTransactionReceipt({
-    hash: transactions.setNameTx,
-    pollingInterval: 1_000,
-  });
+      resetSteps();
 
-  const reclaimReceipt = useWaitForTransactionReceipt({
-    hash: transactions.reclaimTx,
-    pollingInterval: 1_000,
-  });
+      const node = namehash(domainName(name));
+      const tokenId = BigInt(keccak256(toBytes(name)));
 
-  const transferReceipt = useWaitForTransactionReceipt({
-    hash: transactions.transferTx,
-    pollingInterval: 1_000,
-  });
-
-  // Collect receipts into a single object
-  const receiptTrackers = useMemo(
-    () => ({
-      setAddr: setAddrReceipt,
-      setName: setNameReceipt,
-      reclaim: reclaimReceipt,
-      transfer: transferReceipt,
-    }),
-    [setAddrReceipt, setNameReceipt, reclaimReceipt, transferReceipt]
-  );
-
-  // Update transaction statuses based on receipts
-  useEffect(() => {
-    Object.keys(stepToTxKey).forEach(step => {
-      const currentStep = step as TxStep;
-      const txKey = stepToTxKey[currentStep];
-      const receipt = receiptTrackers[currentStep];
-      const hash = transactions[txKey as keyof typeof transactions];
-
-      if (receipt.isSuccess && txStatuses[currentStep] !== "success") {
-        setTxStatuses(prev => ({ ...prev, [currentStep]: "success" }));
-      } else if (receipt.isError && txStatuses[currentStep] !== "error") {
-        setTxStatuses(prev => ({ ...prev, [currentStep]: "error" }));
-      } else if (hash && txStatuses[currentStep] === "idle") {
-        setTxStatuses(prev => ({ ...prev, [currentStep]: "pending" }));
-      }
-    });
-  }, [receiptTrackers, transactions, txStatuses, stepToTxKey]);
-
-  // Calculate overall transaction status
-  const getOverallStatus = (): TxStatus => {
-    const statuses = Object.values(txStatuses);
-    if (statuses.includes("error")) return "error";
-    if (statuses.includes("pending")) return "pending";
-    if (statuses.every(status => status === "success")) return "success";
-    return "idle";
-  };
-
-  // Generic function to update transaction data
-  const updateTransactionData = (step: TxStep, hash: `0x${string}`) => {
-    const txKey = stepToTxKey[step];
-    setTransactions(prev => ({
-      ...prev,
-      [txKey]: hash,
-    }));
-    setTxStatuses(prev => ({
-      ...prev,
-      [step]: "pending",
-    }));
-  };
-
-  const waitForFocus = (): Promise<void> => {
-    return new Promise(resolve => {
-      if (document.hasFocus()) {
-        resolve();
-      } else {
-        const onFocus = () => {
-          window.removeEventListener("focus", onFocus);
-          resolve();
-        };
-        window.addEventListener("focus", onFocus);
-      }
-    });
-  };
-
-  const transferOwnership = async (
-    name: string,
-    receiverAddress: `0x${string}`
-  ): Promise<{
-    success: boolean;
-    transactions: {
-      setAddrTx?: `0x${string}`;
-      setNameTx?: `0x${string}`;
-      reclaimTx?: `0x${string}`;
-      transferTx?: `0x${string}`;
-    };
-    error?: Error;
-  }> => {
-    if (!address) throw new Error("No wallet connected");
-    if (!receiverAddress) throw new Error("Receiver address is required");
-
-    // Reset transaction statuses
-    setTransactions({});
-    setTxStatuses({
-      setAddr: "idle",
-      setName: "idle",
-      reclaim: "idle",
-      transfer: "idle",
-    });
-
-    const node = namehash(domainName(name));
-    const tokenId = (() => {
-      const bytes32 = toBytes(name);
-      const hash = keccak256(bytes32);
-      return BigInt(hash);
-    })();
-
-    console.log("Transferring ownership", {
-      name,
-      node,
-      tokenId,
-      from: address,
-      to: receiverAddress,
-    });
-
-    try {
-      const txs = {} as {
-        setAddrTx?: `0x${string}`;
-        setNameTx?: `0x${string}`;
-        reclaimTx?: `0x${string}`;
-        transferTx?: `0x${string}`;
-      };
-
-      // Define contract interaction steps
-      const steps: ContractStep[] = [
+      const contractSteps: ContractStep[] = [
         {
           step: "setAddr",
-          contractAddress: networkConfig?.contracts.L2_RESOLVER.address as `0x${string}`,
+          contractAddress: networkConfig.contracts.L2_RESOLVER.address as `0x${string}`,
           abi: RESOLVER_ABI,
           functionName: "setAddr",
           args: [node, receiverAddress],
-          logMessage: "Updated resolver address",
         },
         {
           step: "setName",
-          contractAddress: networkConfig?.contracts.REVERSE_REGISTRAR.address as `0x${string}`,
+          contractAddress: networkConfig.contracts.REVERSE_REGISTRAR.address as `0x${string}`,
           abi: REVERSE_REGISTRAR_ABI,
           functionName: "setName",
           args: [""],
-          logMessage: "Cleared reverse record",
         },
         {
           step: "reclaim",
-          contractAddress: networkConfig?.contracts.BASE_REGISTRAR.address as `0x${string}`,
+          contractAddress: networkConfig.contracts.BASE_REGISTRAR.address as `0x${string}`,
           abi: BASE_REGISTRAR_ABI,
           functionName: "reclaim",
           args: [tokenId, receiverAddress],
-          logMessage: "Reclaimed NFT",
         },
         {
           step: "transfer",
-          contractAddress: networkConfig?.contracts.BASE_REGISTRAR.address as `0x${string}`,
+          contractAddress: networkConfig.contracts.BASE_REGISTRAR.address as `0x${string}`,
           abi: BASE_REGISTRAR_ABI,
           functionName: "safeTransferFrom",
           args: [address, receiverAddress, tokenId],
-          logMessage: "Transferred NFT",
         },
       ];
 
-      // Execute each step
-      for (let i = 0; i < steps.length; i++) {
-        const { step, contractAddress, abi, functionName, args, logMessage } = steps[i];
-        const txKey = stepToTxKey[step];
+      try {
+        for (const step of contractSteps) {
+          await executeStep(step);
+        }
 
-        txs[txKey as keyof typeof txs] = await writeContractAsync({
-          address: contractAddress,
-          abi,
-          functionName,
-          args,
-        });
+        return {
+          success: true,
+          steps,
+        };
+      } catch (error) {
+        const failedStep = Object.values(steps).find(s => s.status === "pending")?.step;
 
-        updateTransactionData(step, txs[txKey as keyof typeof txs] as `0x${string}`);
-        console.log(`Step ${i + 1}: ${logMessage}`, txs[txKey as keyof typeof txs]);
+        if (failedStep) {
+          updateStep(failedStep, {
+            status: "error",
+            error: error as Error,
+          });
+        }
 
-        await waitForFocus();
+        return {
+          success: false,
+          steps,
+          error: error as Error,
+        };
       }
+    },
+    [address, executeStep, networkConfig, steps, updateStep]
+  );
 
-      return {
-        success: true,
-        transactions: txs,
-      };
-    } catch (error) {
-      console.error("Transfer ownership error:", error);
-      return {
-        success: false,
-        transactions: {},
-        error: error instanceof Error ? error : new Error("Unknown error during transfer"),
-      };
-    }
-  };
+  const overallStatus: TxStatus = useMemo(() => {
+    const statuses = Object.values(steps).map(s => s.status);
 
-  const isConnected = Boolean(address);
+    if (statuses.includes("error")) return "error";
+    if (statuses.includes("pending")) return "pending";
+    if (statuses.every(s => s === "success")) return "success";
+    return "idle";
+  }, [steps]);
 
   return {
     transferOwnership,
-    isConnected,
-    txStatuses,
-    transactions,
-    overallStatus: getOverallStatus(),
+    isConnected: Boolean(address),
+    steps,
+    overallStatus,
   };
 }
