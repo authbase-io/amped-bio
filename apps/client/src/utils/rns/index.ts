@@ -1,6 +1,6 @@
 import { DateTime } from "luxon";
 import { bytesToHex, Hex, numberToBytes } from "viem";
-import { DOMAIN_SUFFIX } from "@/config/rns/constants";
+import { DOMAIN_SUFFIX, NAME_REQUIREMENTS } from "@/config/rns/constants";
 
 export interface FormattedDateTime {
   date: string;
@@ -50,11 +50,14 @@ export const nftIdToBytes32 = (id: bigint): Hex => {
 };
 
 export const isValidRevolutionName = (name: string): boolean => {
-  if (name.includes(".")) {
-    return false;
+  if (
+    name.length >= NAME_REQUIREMENTS.minLength &&
+    name.length <= NAME_REQUIREMENTS.maxLength &&
+    NAME_REQUIREMENTS.validCharacters.test(name)
+  ) {
+    return true;
   }
-
-  return true;
+  return false;
 };
 
 export const isRevoNameExpired = (expiryDateWithGrace: string): boolean => {
