@@ -21,6 +21,14 @@ export const queryGetAllRegisteredNamesOfOwner = gql`
 
 export const queryRegistrationDetailForName = gql`
   query getRegistrationData($labelHash: String!) {
+    revoNames(where: { labelHash: $labelHash }) {
+      name
+      owner
+      expiryDateWithGrace
+      resolver {
+        address
+      }
+    }
     registration(id: $labelHash) {
       registrationDate
       expiryDate
