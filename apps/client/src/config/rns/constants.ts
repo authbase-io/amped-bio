@@ -15,6 +15,5 @@ export const REGISTRATION_DURATIONS: Record<Duration, number> = {
 
 export const DOMAIN_SUFFIX = ".revotest.eth";
 
-// Price feed URL for ETH price
-export const PRICE_FEED_URL =
-  "https://api.etherscan.io/v2/api?chainid=1&module=stats&action=ethprice&apikey=QA295ZRJC6PBDTMXIZWIY6999R3VFYBIZP";
+// Price feed URL for tREVO price
+export const PRICE_FEED_URL = "";

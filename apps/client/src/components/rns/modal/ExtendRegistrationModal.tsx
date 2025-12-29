@@ -12,7 +12,7 @@ import {
   getMaxDurationForUnit,
   formatDuration,
 } from "@/utils/rns/timeUtils";
-import usePriceFeed from "@/hooks/rns/usePriceFeed";
+// import usePriceFeed from "@/hooks/rns/usePriceFeed";
 
 interface ExtendRegistrationModalProps {
   isOpen: boolean;
@@ -43,7 +43,8 @@ const ExtendRegistrationModal = ({
   const { minDuration, isLoading: availabilityLoading } = useNameAvailability(ensName, duration);
   const { renew, price, isPriceLoading } = useRenewal(ensName, duration);
   const { data: feeData } = useFeeData();
-  const { ethPrice } = usePriceFeed();
+  // const { ethPrice } = usePriceFeed();
+  const revoPrice = "$0.00";
 
   const publicClient = usePublicClient();
 
@@ -51,9 +52,9 @@ const ExtendRegistrationModal = ({
   const estimatedGasFee = 0.0003; // tREVO
   const formattedPrice = price ? formatEther(price) : null;
   const totalEthPrice = formattedPrice ? Number(formattedPrice) + estimatedGasFee : null;
-  const totalUsdPrice =
-    totalEthPrice && ethPrice ? (totalEthPrice * Number(ethPrice)).toFixed(2) : "0";
-
+  // const totalUsdPrice =
+  //   totalEthPrice && ethPrice ? (totalEthPrice * Number(ethPrice)).toFixed(2) : "0";
+  const totalUsdPrice = revoPrice;
   // Initialize duration based on minDuration when it's loaded
   useEffect(() => {
     if (minDuration) {
@@ -119,7 +120,7 @@ const ExtendRegistrationModal = ({
     <div className="space-y-4 sm:space-y-6">
       <div className="flex justify-between items-center gap-2">
         <h2 className="text-lg sm:text-2xl font-bold text-gray-900 overflow-x-hidden">
-          Extend <span className="font-semibold">{trimmedDomainName(ensName)}</span>
+          Extend <span className="font-semibold sm:font-bold">{trimmedDomainName(ensName)}</span>
         </h2>
         <button
           onClick={onClose}
@@ -181,23 +182,27 @@ const ExtendRegistrationModal = ({
         <div className="flex justify-between text-gray-600">
           <span>{formatDuration(Number(duration))} extension</span>
           <span>
-            {currency === "tREVO"
+            {/* {currency === "tREVO"
               ? formattedPrice
                 ? `${Number(formattedPrice).toFixed(2)} tREVO`
                 : "Loading..."
               : formattedPrice && ethPrice
                 ? `$${(Number(formattedPrice) * Number(ethPrice)).toFixed(2)}`
-                : "Loading..."}
+                : "Loading..."} */}
+
+            {currency == "tREVO" ? `${Number(formattedPrice).toFixed(2)} tREVO` : revoPrice}
           </span>
         </div>
         <div className="flex justify-between text-gray-600">
           <span>Transaction fee</span>
           <span>
-            {currency === "tREVO"
+            {/* {currency === "tREVO"
               ? `${estimatedGasFee} tREVO`
               : ethPrice
                 ? `$${(estimatedGasFee * Number(ethPrice)).toFixed(2)}`
-                : "Loading..."}
+                : "Loading..."} */}
+
+            {currency == "tREVO" ? `${estimatedGasFee} tREVO` : revoPrice}
           </span>
         </div>
         <div className="flex justify-between text-gray-900 font-medium pt-2 border-t border-[#e2e3e3]">
@@ -207,7 +212,7 @@ const ExtendRegistrationModal = ({
               ? totalEthPrice
                 ? `${totalEthPrice.toFixed(4)} tREVO`
                 : "Loading..."
-              : `$${totalUsdPrice}`}
+              : `${totalUsdPrice}`}
           </span>
         </div>
       </div>
