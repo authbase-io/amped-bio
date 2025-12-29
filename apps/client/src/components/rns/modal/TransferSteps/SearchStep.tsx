@@ -72,7 +72,7 @@ const SearchStep: React.FC<SearchStepProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col rounded-3xl">
       <div className="flex justify-between items-center p-4 sm:p-6 border-b border-[#e2e3e3]">
         <h2 className="text-xl sm:text-2xl font-semibold">Send Name</h2>
         <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
@@ -86,7 +86,7 @@ const SearchStep: React.FC<SearchStepProps> = ({
           <input
             type="text"
             placeholder="Ethereum address"
-            className="w-full pl-10 pr-4 py-2 rounded-lg border border-[#e2e3e3] focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full text-sm sm:text-base pl-10 pr-4 py-2 rounded-lg border border-[#e2e3e3] focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={recipient}
             onChange={e => handleSearch(e.target.value)}
           />
@@ -112,11 +112,11 @@ const SearchStep: React.FC<SearchStepProps> = ({
           </div>
         ) : (
           selectedAddress && (
-            <div className="flex items-center gap-3 p-3 border border-[#e2e3e3] rounded-lg mb-4">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-300 to-blue-400 hidden sm:flex" />
-              <div>
+            <div className="flex items-center gap-3 py-2 px-2 sm:p-3 border border-[#e2e3e3] rounded-lg mb-4">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-300 to-blue-400" />
+              <div className="flex-1 min-w-0">
                 {selectedAddress.name && <div>{selectedAddress.name}</div>}
-                <div className="text-[11px] sm:text-sm text-gray-500">
+                <div className="text-sm sm:text-base text-gray-500 max-w-full truncate font-semibold">
                   {selectedAddress.address}
                 </div>
               </div>
@@ -135,7 +135,7 @@ const SearchStep: React.FC<SearchStepProps> = ({
           </div>
         )}
 
-        {ensName && (
+        {!ensName && (
           <div className="mt-2 p-3 bg-yellow-50 text-yellow-700 rounded-lg">
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5" />
@@ -158,11 +158,11 @@ const SearchStep: React.FC<SearchStepProps> = ({
         )}
       </div>
 
-      <div className="p-4 sm:p-6 border-t border-[#e2e3e3] bg-white mt-auto">
+      <div className="p-4 sm:p-6 border-t border-[#e2e3e3]">
         <div className="flex gap-4">
           <button
             onClick={onClose}
-            className="flex-1 py-2 px-4 bg-gray-50 hover:bg-gray-100 rounded-lg text-gray-600"
+            className="flex-1 py-2 px-4 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-600"
           >
             Cancel
           </button>

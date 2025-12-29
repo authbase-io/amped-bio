@@ -1,7 +1,6 @@
 import React from "react";
 import { X, AlertTriangle } from "lucide-react";
 import { AddressResult } from "@/types/rns/common";
-import { NameDetails } from "@/types/rns/name";
 import { trimmedDomainName } from "@/utils/rns";
 import { Address } from "viem";
 
@@ -31,8 +30,8 @@ const FormStep: React.FC<FormStepProps> = ({
   nameError,
 }) => {
   return (
-    <div className="flex flex-col h-full min-h-0">
-      <div className="flex justify-between items-center p-4 sm:p-6 border-b border-[#e2e3e3]">
+    <div className="flex flex-col h-full">
+      <div className="flex justify-between items-center p-3 sm:p-5 border-b border-[#e2e3e3]">
         <button onClick={goBack} className="text-blue-500">
           <svg
             width="24"
@@ -62,8 +61,8 @@ const FormStep: React.FC<FormStepProps> = ({
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-3">You&#39;ll be sending</h1>
+      <div className="flex-1 overflow-y-auto p-3 sm:p-5">
+        <h1 className="text-lg sm:text-2xl font-bold mb-3">You&#39;ll be sending</h1>
 
         <div className="bg-gray-50 rounded-xl p-3 mb-3 flex items-center">
           <div className="flex items-center gap-3">
@@ -76,12 +75,12 @@ const FormStep: React.FC<FormStepProps> = ({
           </div>
         </div>
 
-        <h2 className="text-xl sm:text-2xl font-bold mb-2">To</h2>
+        <h2 className="text-lg sm:text-2xl font-bold mb-2">To</h2>
 
         <div className="bg-gray-50 rounded-xl p-3 mb-3 flex items-center">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden" />
-            <div>
+            <div className="text-sm sm:text-base">
               {selectedAddress?.name && <p className="font-medium">{selectedAddress.name}</p>}
               <>
                 <p
@@ -101,20 +100,20 @@ const FormStep: React.FC<FormStepProps> = ({
           </div>
         </div>
 
-        <h2 className="text-xl sm:text-2xl font-bold mb-2">What you&#39;ll send</h2>
+        <h2 className="text-lg sm:text-2xl font-bold mb-2">What you&#39;ll send</h2>
 
         <div className="bg-gray-50 rounded-xl p-3 mb-3">
           <div className="space-y-2">
             <div>
               <p className="font-semibold text-sm">Address record</p>
               <p className="text-gray-500 text-xs sm:text-sm">
-                Your Basename will resolve to this address.
+                Your Revoname will resolve to this address.
               </p>
             </div>
             <div>
               <p className="font-semibold text-sm">Name record</p>
               <p className="text-gray-500 text-xs sm:text-sm">
-                Your Basename will no longer be displayed with your address.
+                Your Revoname will no longer be displayed with your address.
               </p>
             </div>
             <div>
@@ -126,7 +125,7 @@ const FormStep: React.FC<FormStepProps> = ({
             <div>
               <p className="font-semibold text-sm">Token ownership</p>
               <p className="text-gray-500 text-xs sm:text-sm">
-                Transfer the Basename token to this address.
+                Transfer the Revoname token to this address.
               </p>
             </div>
           </div>
@@ -143,7 +142,7 @@ const FormStep: React.FC<FormStepProps> = ({
         )}
       </div>
 
-      <div className="p-4 sm:p-6 border-t border-[#e2e3e3] bg-white flex-shrink-0">
+      <div className="p-3 sm:p-5 border-t border-[#e2e3e3] flex-shrink-0">
         <button
           onClick={handleTransfer}
           disabled={!isConnected || overallStatus === "pending"}

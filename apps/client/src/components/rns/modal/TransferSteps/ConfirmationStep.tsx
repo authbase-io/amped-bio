@@ -63,7 +63,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
         </div>
       </div>
 
-      <div className="p-4 sm:p-6 border-t border-[#e2e3e3] bg-white mt-auto">
+      <div className="p-4 sm:p-6 border-t border-[#e2e3e3] mt-auto">
         <button
           onClick={onClose}
           className="w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
