@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ParticlesBackground } from "./particles/ParticlesBackground";
 import { cn } from "../utils/cn";
 import {
@@ -16,7 +16,6 @@ import { Theme, UserProfile } from "@/types/editor";
 import { trpcClient } from "@/utils/trpc";
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
-import { useRNSNavigation } from "@/contexts/RNSNavigationContext";
 
 // Helper function to extract the root domain from a URL
 const extractRootDomain = (url: string): string => {
@@ -41,8 +40,8 @@ interface PreviewProps {
 
 export function Preview({ profile, blocks, theme }: PreviewProps) {
   const [copied, setCopied] = useState(false);
-  const { navigateToProfile } = useRNSNavigation();
   const themeConfig = theme.config;
+  const navigate = useNavigate();
 
   const handleLinkClick = (block: BlockType) => {
     if (block.type === "link") {
@@ -54,6 +53,17 @@ export function Preview({ profile, blocks, theme }: PreviewProps) {
     navigator.clipboard.writeText(profile.revoName ?? "");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleRevoNameRedirection = (revoName: string) => {
+    const pathname = location.pathname.includes("/edit")
+      ? location.pathname
+      : `${location.pathname.replace(/\/$/, "")}/edit`;
+
+    const searchParams = new URLSearchParams(location.search);
+    searchParams.set("p", "rns");
+    searchParams.set("t", `profile:${encodeURIComponent(revoName)}:details`);
+    navigate(`${pathname}?${searchParams.toString()}`, { replace: true });
   };
 
   // console.info("blocks preview", blocks);
@@ -181,7 +191,7 @@ export function Preview({ profile, blocks, theme }: PreviewProps) {
                         </button>
                         <span
                           className="font-medium cursor-pointer"
-                          onClick={() => navigateToProfile(profile.revoName!.split(".")[0])}
+                          onClick={() => handleRevoNameRedirection(profile.revoName!.split(".")[0])}
                         >
                           {profile.revoName}
                         </span>
