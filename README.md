@@ -315,7 +315,7 @@ If your workflows require environment variables, you can provide them using a `.
 act -s MY_SECRET=value
 ```
 
-For more options and information, check the [Act documentation](https://github.com/nektos/act#usage).
+For more options and information, check the [A ct documentation](https://github.com/nektos/act#usage).
 
 ## Using Bolt for Development
 
