@@ -98,7 +98,10 @@ const OwnershipDetail = ({
                 onClick={() => setIsTransferModalOpen(true)}
               >
                 {overallStatus === "pending" ? (
-                  <Loader className="animate-spin" />
+                  <>
+                    <Loader className="animate-spin" />
+                    <span title="Name is being transferred">Transferring</span>
+                  </>
                 ) : (
                   <>
                     <Send className="w-4 h-4" />
