@@ -1,4 +1,7 @@
-import { fetchAllRegisteredNamesOfOwner } from "@/services/subgraph/queries";
+import {
+  fetchActiveRegisteredNamesOfOwner,
+  fetchAllRegisteredNamesOfOwner,
+} from "@/services/subgraph/queries";
 import { useSubgraphClient } from "@/services/subgraph/subgraphClient";
 import { RevoName } from "@/types/rns/name";
 import { useCallback, useEffect, useState } from "react";
@@ -7,7 +10,7 @@ import { Address } from "viem";
 export default function useGetAllRegisteredNames(
   address: Address | undefined,
   isConnected: boolean,
-  unexpiredOnly: boolean = false
+  activeOnly: boolean = false
 ) {
   const [isFetching, setIsFetching] = useState(false);
   const [revoNames, setRevoNames] = useState<RevoName[]>([]);
@@ -20,11 +23,9 @@ export default function useGetAllRegisteredNames(
 
     setIsFetching(true);
     try {
-      const response = await fetchAllRegisteredNamesOfOwner(
-        address,
-        subgraphClient,
-        unexpiredOnly
-      );
+      const response = activeOnly
+        ? await fetchActiveRegisteredNamesOfOwner(address, subgraphClient)
+        : await fetchAllRegisteredNamesOfOwner(address, subgraphClient);
       setRevoNames(response.data ?? []);
       setError(response.error);
     } catch (e) {
@@ -33,7 +34,7 @@ export default function useGetAllRegisteredNames(
     } finally {
       setIsFetching(false);
     }
-  }, [address, subgraphClient, isConnected, unexpiredOnly]);
+  }, [address, subgraphClient, isConnected, activeOnly]);
 
   useEffect(() => {
     fetchData();

@@ -46,12 +46,12 @@ export const queryGetAllRegisteredNamesOfOwner = gql`
   }
 `;
 
-export const queryGetAllRegisteredNamesOfOwnerWithoutExpiredName = gql`
-  query getAllNames($owner: String!, $currentTimestamp: BigInt!) {
+export const queryGetActiveRegisteredNamesOfOwner = gql`
+  query getActiveNames($owner: String!, $now: BigInt!) {
     revoNames(
       orderBy: expiryDateWithGrace
       orderDirection: desc
-      where: { owner: $owner, name_not: null, expiryDateWithGrace_gt: $currentTimestamp }
+      where: { owner: $owner, name_not: null, expiryDateWithGrace_gt: $now }
     ) {
       name
       labelName
@@ -142,24 +142,11 @@ export const queryGetRecords = gql`
 
 export async function fetchAllRegisteredNamesOfOwner(
   owner: Address,
-  graphClient?: GraphQLClient | null,
-  unexpiredOnly: boolean = false
+  graphClient?: GraphQLClient | null
 ): Promise<SubgraphResult<RevoName[]>> {
   try {
     if (!graphClient) {
       return { data: null, error: "Subgraph client not available for current network" };
-    }
-
-    if (unexpiredOnly) {
-      const currentTimestamp = Math.floor(Date.now() / 1000).toString();
-      const data = await graphClient.request<GetAllNamesResult>(
-        queryGetAllRegisteredNamesOfOwnerWithoutExpiredName,
-        {
-          owner,
-          currentTimestamp,
-        }
-      );
-      return { data: data.revoNames, error: null };
     }
 
     const variables = { owner };
@@ -171,6 +158,28 @@ export async function fetchAllRegisteredNamesOfOwner(
     return { data: data.revoNames, error: null };
   } catch (err) {
     console.error("Error Fetching names", err);
+    return { data: null, error: "Failed to Fetch Names" };
+  }
+}
+
+export async function fetchActiveRegisteredNamesOfOwner(
+  owner: Address,
+  graphClient?: GraphQLClient | null
+): Promise<SubgraphResult<RevoName[]>> {
+  try {
+    if (!graphClient) {
+      return { data: null, error: "Subgraph client not available for current network" };
+    }
+    const now = Math.floor(Date.now() / 1000).toString();
+    const variables = { owner, now };
+    const data = await graphClient.request<GetAllNamesResult>(
+      queryGetActiveRegisteredNamesOfOwner,
+      variables
+    );
+
+    return { data: data.revoNames, error: null };
+  } catch (err) {
+    console.error("Error Fetching active names", err);
     return { data: null, error: "Failed to Fetch Names" };
   }
 }
