@@ -181,4 +181,20 @@ export const env = cleanEnv(process.env, {
     default: "",
     example: "https://graph.libertas.revolutionchain.io/subgraphs/name/subgraph/rns",
   }),
+
+  // Authbase identity verification API (wallet KYC status lookups). Left empty
+  // by default — the authbase router reports "unavailable" until configured.
+  AUTHBASE_BASE_URL: str({
+    desc: "Base URL for the Authbase public API",
+    default: "",
+    example: "https://api.authbase.io",
+  }),
+  AUTHBASE_API_KEY: str({
+    desc: "Authbase API key (Basic auth username)",
+    default: "",
+  }),
+  AUTHBASE_API_SECRET: str({
+    desc: "Authbase API secret (Basic auth password)",
+    default: "",
+  }),
 });
