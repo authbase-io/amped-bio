@@ -90,7 +90,6 @@ export default function ProfilePage({ name }: ProfilePageProps) {
 
       <div className="flex flex-col-reverse sm:flex-row sm:justify-between px-5 gap-1">
         <ProfileNav name={name} activeTab={activeTab} onTabChange={handleTabChange} />
-
         {ownerAddress && (
           <a
             href={scannerURL("address", ownerAddress)}
@@ -103,7 +102,6 @@ export default function ProfilePage({ name }: ProfilePageProps) {
           </a>
         )}
       </div>
-
       {activeTab === "details" && (
         <ProfileCard
           name={name}
@@ -134,7 +132,9 @@ export default function ProfilePage({ name }: ProfilePageProps) {
           resolver={resolver}
         />
       )}
-      {activeTab === "identity" && <VerificationDetail isOwner={isCurrentOwner} />}
+      {activeTab === "identity" && (
+        <VerificationDetail isOwner={isCurrentOwner} ownerAddress={ownerAddress} />
+      )}
     </div>
   );
 }
