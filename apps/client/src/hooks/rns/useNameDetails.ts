@@ -1,4 +1,5 @@
-import { useReadContract, useAccount, useReadContracts } from "wagmi";
+import { useReadContract, useChainId, useReadContracts } from "wagmi";
+import { useWalletContext } from "@/contexts/WalletContext";
 import { keccak256, namehash, toBytes } from "viem";
 import { domainName, formatDateTime } from "@/utils/rns";
 import { useEffect, useMemo, useState, useCallback } from "react";
@@ -12,7 +13,8 @@ import {
 import { getChainConfig, REGISTRAR_CONTROLLER_ABI, RESOLVER_ABI } from "@ampedbio/web3";
 
 export function useNameDetails(name: string) {
-  const { address: connectedWallet, chainId } = useAccount();
+  const { address: connectedWallet } = useWalletContext();
+  const chainId = useChainId();
   const networkConfig = getChainConfig(chainId ?? 0);
   const subgraphClient = useSubgraphClient();
 

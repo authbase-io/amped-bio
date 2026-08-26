@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { domainName, scannerURL } from "@/utils/rns";
 import { Copy, ExternalLink } from "lucide-react";
-import { useAccount, useChainId } from "wagmi";
+import { useChainId } from "wagmi";
+import { useWalletContext } from "@/contexts/WalletContext";
 import { getCurrencySymbol } from "@ampedbio/web3";
 import { useRNSNavigation } from "@/contexts/RNSNavigationContext";
 import { ProfileCard } from "@/components/rns/profile/ProfileCard";
@@ -39,7 +40,7 @@ export default function ProfilePage({ name }: ProfilePageProps) {
     textRecords,
     textRecordsLoading,
   } = useNameDetails(name);
-  const { address: connectedWallet } = useAccount();
+  const { address: connectedWallet } = useWalletContext();
   const chainId = useChainId();
   const currencySymbol = getCurrencySymbol(chainId);
   const { navigateToHome, navigateToRegister } = useRNSNavigation();

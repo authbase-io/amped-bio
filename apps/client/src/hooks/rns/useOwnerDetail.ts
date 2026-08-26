@@ -1,4 +1,4 @@
-import { useAccount } from "wagmi";
+import { useWalletContext } from "@/contexts/WalletContext";
 
 import { keccak256, toBytes } from "viem";
 import { format, addHours, fromUnixTime } from "date-fns";
@@ -40,7 +40,7 @@ const formatDateTime = (timestamp: bigint | undefined) => {
 };
 
 export function useOwnerDetail(name: string) {
-  const { address: currentWalletAddress } = useAccount();
+  const { address: currentWalletAddress } = useWalletContext();
   const subgraphClient = useSubgraphClient();
 
   const [names, setNames] = useState<NameDetail | null>(null);
