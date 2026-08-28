@@ -26,7 +26,8 @@ export const authbaseRouter = router({
           if (err.httpStatus === 401) {
             throw new TRPCError({
               code: "SERVICE_UNAVAILABLE",
-              message: "Authbase integration misconfigured",
+              message:
+                "Authbase verification is temporarily unavailable. Please try again later.",
             });
           }
           if (err.httpStatus === 429) {
