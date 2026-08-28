@@ -3,10 +3,12 @@ import { useWalletContext } from "@/contexts/WalletContext";
 import { keccak256, toBytes } from "viem";
 import { format, addHours, fromUnixTime } from "date-fns";
 import { useEffect, useState } from "react";
+import { useChainId } from "wagmi";
 
 import { NameDetail } from "@/types/rns/name";
 import { useSubgraphClient } from "@/services/subgraph/subgraphClient";
 import { fetchGetNameDetails } from "@/services/subgraph/queries";
+import { getChainConfig } from "@ampedbio/web3";
 
 const GRACE_PERIOD_HOUR = 1;
 
@@ -42,6 +44,8 @@ const formatDateTime = (timestamp: bigint | undefined) => {
 export function useOwnerDetail(name: string) {
   const { address: currentWalletAddress } = useWalletContext();
   const subgraphClient = useSubgraphClient();
+  const chainId = useChainId();
+  const networkConfig = getChainConfig(chainId ?? 0);
 
   const [names, setNames] = useState<NameDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +62,7 @@ export function useOwnerDetail(name: string) {
       setIsLoading(true);
 
       try {
-        const response = await fetchGetNameDetails(name, subgraphClient);
+        const response = await fetchGetNameDetails(name, subgraphClient, networkConfig);
 
         if (response.data?.length) {
           setNames(response.data[0]);
@@ -76,7 +80,7 @@ export function useOwnerDetail(name: string) {
     };
 
     getData();
-  }, [name, refreshKey, subgraphClient]);
+  }, [name, refreshKey, subgraphClient, networkConfig]);
 
   const expiryTimestamp = names?.registration?.expiryDate
     ? BigInt(names.registration.expiryDate)
